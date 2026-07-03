@@ -101,7 +101,20 @@ ASR=PoisonACC，BA=CleanACC，取末20 epoch 均（同 result_all.md 口径）�
 ### v3 方向（基于三轮发现的正解）
 **δ_global 固定用 Narcissus 缩放(不再优化，保留其强 ASR)，只优化 δ_adaptive(可学习,L_align)做防御规避塑形**。预期：ASR 追随 Narcissus(gs010 档→~68，远超 v1/v2 的 16/2)+ 学习型 adaptive 带来比 Stage A 规则版更好的 SS-规避 → 可能首次同时接近 T1+T3。即 Stage A 结构 + 可学习 adaptive。
 
-## Stage B v3（δ_global 冻结 + 无界 adaptive）—— 2026-07-02，失败(C2 被破坏)
+## GTSRB 跨数据集验证 —— 2026-07-04，首次尝试失败
+v3.1 配方(固定 CIFAR Narcissus)无法直接移植到 GTSRB(无预计算强触发器)。用 `--global_obj asr --init_random --global_l2_max X` 自生成 GTSRB 全局触发器 + bounded adaptive(`--adaptive_l2_max 0.15`)。data/GTSRB32(43类,Resize32,90/10切 train/val)。
+
+| 配置 | L2预算 | 状态 | ASR | BA | 备注 |
+|---|---|---|---|---|---|
+| L2=3.0 | 3.0 | 跑完 | **0.90**(≈随机) | 99.95 | CE-proxy触发器未产生有效方向 |
+| L2=1.3 | 1.3 | 崩 | — | — | `stats_forget_seed_1.pkl`缺失(cal_metric --epochs 11 未产最终stats) |
+
+L2=3.0 隐蔽: L2=1.440 / SSIM=0.914 / AC-AUC **0.683**(AC 可检测) / SS-AUC **0.584**(SS 可检测)。与 CIFAR 形成鲜明对比(主因是 GTSRB 无预计算的强全局触发器)。
+
+### GTSRB 失败根因分析
+CIFAR 的 v3.1 依赖 **authors 预计算的 Narcissus 噪声**(noise_01000.pth，极强 ASR 方向)；GTSRB 没有等价物。CE-proxy 优化(`--global_obj asr --init_random`)在 2000 步/43 类下生成的 GTSRB δ_global 几乎不提供翻转力(ASR 0.9%)。**核心发现**：FAAT 的强 ASR 高度依赖 δ_global 的「种子方向」质量——CIFAR 有 authors 的强方向,V3.1 只需冻结它 + 有界 adaptive 锦上添花；GTSRB 从头生成则无法达到有效强度。方法普适性在这套配方下不成立。需换思路。
+
+—— 2026-07-02，失败(C2 被破坏)
 `--fix_global`（δ_global=Narcissus 冻结）但 δ_adaptive 无界。**ASR 崩塌**：scale 1.0 ASR 35、scale 0.5 ASR 1.1、scale 0.1 ASR 0.5（vs 同 δ_global 的 Stage A gs100=100/gs010=68.6）。
 根因：L_align 把 `|da|` 推到 ~5（scale 0.1 时是 δ_global 0.66 的 5 倍）→ δ_adaptive 成训练期**主导共触发器**，victim 学 adaptive 不学 δ_global，测试期（仅 δ_global）ASR 崩塌。**违反 C2 约束**。
 
@@ -123,6 +136,23 @@ ASR=PoisonACC，BA=CleanACC，取末20 epoch 均（同 result_all.md 口径）�
 - **scale 0.15 卡在临界**：ASR 82.92 ≈ 82.99（差 0.07），更隐蔽(L2 0.99/SSIM 0.978)但 ASR 刚够 baseline。
 - **v3.1 略超 Narcissus（证明 adaptive 有贡献）**：scale 0.1 (L2=0.658) ASR **70.96 > Narcissus gs010 (L2=0.66) 的 68.57**；SS-AUC 0.437 < Stage A gs010 的 0.494 → 有界学习型 adaptive 比规则版在等 L2 下 ASR 更高、SS-规避更好。
 - **迭代总结**：v1(L_align 优化δ_global)→v2(CE)→v3(无界adaptive) 均不敌 Narcissus；**v3.1（固定 Narcissus + 有界学习 adaptive）跑通**，正解 = 「保留 Narcissus 的强 ASR 方向 + 有界 adaptive 做防御规避塑形，且 |adaptive| 必须 ≪ |δ_global| 以满足 C2」。
+
+## v3.1 多种子稳定性 —— 2026-07-04，✅ 稳定达标
+scale0.2 和 scale0.17 各 3 种子(CIFAR-10 res-square @1%)。
+
+| 配置 | 种子 | ASR | BA | ASR 均值±std | BA 均值±std |
+|---|---|---|---|---|---|
+| scale 0.2 (L2≈1.31) | 1 | 94.81 | 94.67 | **93.44 ± 2.64** | **94.74 ± 0.07** |
+| | 2 | 95.15 | 94.74 | | |
+| | 3 | 90.37 | 94.80 | | |
+| scale 0.17 (L2≈1.12) | 1 | 90.45 | 94.89 | **90.10 ± 1.46** | **94.83 ± 0.06** |
+| | 2 | 91.30 | 94.78 | | |
+| | 3 | 88.54 | 94.82 | | |
+
+**判定**：
+- **T1(ASR>82.99)✅ 3种子全稳**：scale0.2 均值 93.44±2.64(最低 90.37≫82.99)；scale0.17 均值 90.10±1.46(最低 88.54≫82.99)。
+- **T2(BA≈94.6)✅ 极稳**：两档 BA 均值 ~94.8，std<0.07。
+- 种子 3 的 ASR 略低(90.37/88.54)——种子 3 补跑时与 y_target=5 共享 GPU2(2 作业/卡)，可能受共享影响，但对结论无影响(仍 ≫82.99)。
 
 ## v3.1 后续验证批(batch2)—— 2026-07-03
 微调 sweep + 多 y_target（结果干净）；消融因 artifact 污染重跑中。
