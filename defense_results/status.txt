@@ -1,0 +1,11 @@
+## Coverage (parsed / total logs)
+
+- **strip**: 39 / 39 parsed
+- **scan**: 34 / 34 parsed
+- **ac**: 39 / 39 parsed
+- **abl**: 39 / 39 parsed
+- **fp**: 39 / 39 parsed
+- **fst**: 34 / 34 parsed
+- **nc**: 39 / 39 parsed
+- **rnp**: 39 / 39 parsed
+- **i-bau**: 39 / 39 parsed

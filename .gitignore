@@ -1,0 +1,14 @@
+# 大文件/二进制/数据 — 不进git(可由代码重新生成)
+data/
+resource/
+*.pth
+*.npy
+*.pkl
+*.pt
+# 模型权重也排除(results 里的 model_last.pth)
+*.model
+__pycache__/
+*.pyc
+# nohup 原始屏幕输出(重复且有PIL噪音);训练日志 output_*.log 保留(含ASR/BA)
+*.stdout
+*.PARTIAL_*
