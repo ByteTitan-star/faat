@@ -7,6 +7,30 @@
 
 本文件给 Claude Code 的**持久化工作指南**。开始任何复现/训练任务前先读这里。
 
+## Git 仓库与分支管理（强制，防版本代码/数据丢失）
+
+> 远程：`git@github.com:ByteTitan-star/faat.git`（SSH）或 `https://github.com/ByteTitan-star/faat.git`（HTTPS）。
+> 凭证已缓存 `~/.git-credentials`（chmod 600）。当前服务器 GitHub 网络不通（代理超时），恢复后用 `git push --all origin && git push --tags` 推送。
+> 本地快照双保险：`snapshots/v3.1_2026-07-03/`（cp 版代码副本）。
+
+### 分支策略
+- **`main` = 永远是最佳稳定版**。只放验证通过、效果最好的代码。**绝不直接在 main 上做实验性改动**。
+- **`exp/xxx`** = 每次新尝试开一个实验分支（如 `exp/v4-decouple`），在该分支上自由改代码、跑实验。实验结果确认后：
+  - **若效果优于 main 当前最佳** → merge 进 main，打 tag（如 `v4.0`），推远端。
+  - **若效果不如 main** → **不 merge**，分支保留(含代码+实验记录)，推远端作为"负面证据"（同类错误不再犯）。
+- **不做 `git rebase`/`git reset --hard`**，历史不丢失。
+
+### 每个版本的操作规范（动手前必须执行）
+1. **改代码前**：`git add -A && git commit -m "before exp/xxx"`→ 保存当前状态。
+2. **创建实验分支**：`git checkout -b exp/xxx`。
+3. **独立目录**：新版本用独立 `results/faatb_xxx_*/` + `resource/faat/xxx/`（不碰旧版本数据）。
+4. **跑完后**：`git add -A && git commit -m "exp/xxx: ASR=xx BA=xx"`，分支推远端 `git push -u origin exp/xxx`。
+5. **决定**：若好 → `git checkout main && git merge exp/xxx && git tag vX.Y && git push --tags`。若差 → 分支就留在 `exp/xxx`，不合并，保留代码+数据作为证据。
+
+### Tag 规范
+- 稳定版打轻量 tag（`v3.1`, `v4.0`...），配合 `docs/REPRODUCE-vX.Y.md` 可精准复现。
+- 分支名含关键改动（如 `exp/fix-global-with-asr`），对比时一目了然。
+
 ## 这是什么项目
 
 复现论文 **"A Set of Generalized Components to Achieve Effective Poison-only Clean-label Backdoor Attacks"**（NeurIPS 2025, arXiv 2509.19947）的实验，作为 **FAAT 新方法论文的 baseline**。
