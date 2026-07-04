@@ -30,7 +30,6 @@ from .proxy import (select_poison_inds, load_proxy, train_clean_proxy,
 from .strategy_net import StrategyNet, N_BANDS
 from .trigger_gen import FAATGenerator
 from .losses import align_loss, ssim_loss, l2_loss, freq_loss
-from .global_trigger import optimize_global_trigger, build_clean_image_tensor
 
 NAR_NOISE = './resource/narcissus/noise_01000.pth'
 
@@ -83,27 +82,8 @@ def run_optimization(cfg):
                         n_bands=cfg.n_bands)                                # [N,d_s]
 
     # 3) generator + policy
-    gt_info = None
-    if getattr(cfg, 'global_mode', 'nar_file') == 'from_scratch':
-        # v4: SELF-CONTAINED Narcissus -- optimise delta_global from scratch against
-        # the clean proxy (no authors' noise_01000.pth). Generalises to any dataset
-        # the proxy was trained on (CIFAR-10, GTSRB, ...). The L2 budget is baked
-        # into the generated delta, so we do NOT apply init_global_scale here.
-        print('[faat-opt] global_mode=from_scratch: generating delta_global via '
-              'self-contained Narcissus engine (l2_budget=%.2f, steps=%d, loss=%s)' %
-              (cfg.global_l2_budget, cfg.global_steps, cfg.global_loss))
-        clean_imgs = build_clean_image_tensor(train_dataset, cfg.size, device)
-        init_g, gt_info = optimize_global_trigger(
-            proxy, clean_imgs, cfg.y_target, device,
-            l2_budget=cfg.global_l2_budget, steps=cfg.global_steps, lr=cfg.global_lr,
-            batch_size=cfg.global_batch_size, loss=cfg.global_loss,
-            margin=cfg.global_margin, init=cfg.global_init, seed=cfg.seed,
-            log_every=cfg.log_every, logger=lambda m: print('[faat-opt] ' + m))
-        init_g = torch.from_numpy(init_g).float().to(device)   # engine returns numpy
-        cfg.init_global_scale = 1.0     # budget already baked in; avoid double-scaling
-    else:
-        init_g = _init_global_direction(cfg.size, cfg.init_global_scale,
-                                        cfg.init_random, device)
+    init_g = _init_global_direction(cfg.size, cfg.init_global_scale,
+                                    cfg.init_random, device)
     gen = FAATGenerator(size=cfg.size, n_bands=cfg.n_bands, eps_max=cfg.eps_max,
                         sparse_gate=cfg.sparse_gate, init_global=init_g,
                         adaptive_l2_max=getattr(cfg, 'adaptive_l2_max', 0.0)).to(device)
@@ -114,10 +94,8 @@ def run_optimization(cfg):
     # optimise only the adaptive residual + policy for defense-evasion shaping).
     if getattr(cfg, 'fix_global', False):
         gen.delta_global.requires_grad_(False)
-        src = 'self-contained Narcissus (l2=%.2f)' % (gt_info['final_l2'] if gt_info else cfg.global_l2_budget) \
-              if getattr(cfg, 'global_mode', 'nar_file') == 'from_scratch' \
-              else 'Narcissus file x %.3f' % cfg.init_global_scale
-        print('[faat-opt] fix_global=True (delta_global frozen at %s)' % src)
+        log_msg = 'fix_global=True (delta_global frozen at Narcissus x %.3f)' % cfg.init_global_scale
+        print('[faat-opt] ' + log_msg)
 
     # 4) optimisers (delta_global gets its own lr per plan 4.6)
     params_adaptive = list(gen.unet.parameters()) + list(policy.parameters())
@@ -225,9 +203,6 @@ def run_optimization(cfg):
         'lambda_freq': cfg.lambda_freq, 'init_random': cfg.init_random,
         'init_global_scale': cfg.init_global_scale,
         'global_obj': cfg.global_obj, 'global_l2_max': cfg.global_l2_max,
-        'global_mode': getattr(cfg, 'global_mode', 'nar_file'),
-        'gen_proxy_asr': (gt_info or {}).get('final_proxy_asr'),
-        'gen_global_l2': (gt_info or {}).get('final_l2'),
         'lambda_asr_global': cfg.lambda_asr_global,
         'final_align': float(L_align.item()), 'final_align_global': float(L_align_g.item()),
     }
@@ -280,21 +255,6 @@ def build_argparser():
     p.add_argument('--sparse_gate', action='store_true')
     p.add_argument('--init_global_scale', type=float, default=1.0)
     p.add_argument('--init_random', action='store_true')
-    p.add_argument('--global_mode', choices=['nar_file', 'from_scratch'], default='nar_file',
-                   help="v4: 'from_scratch' = self-contained Narcissus engine (optimise delta_global "
-                        "from scratch against the clean proxy; NO authors' noise_01000.pth) -> generalises "
-                        "to any dataset. 'nar_file' = v3.1 behaviour (warm-start from noise_01000.pth).")
-    p.add_argument('--global_steps', type=int, default=8000,
-                   help='from_scratch: Narcissus optimisation steps')
-    p.add_argument('--global_lr', type=float, default=0.02)
-    p.add_argument('--global_batch_size', type=int, default=128)
-    p.add_argument('--global_loss', choices=['ce', 'cw'], default='ce',
-                   help="from_scratch objective: 'ce'=CE fool proxy (authors' choice) | "
-                        "'cw'=targeted Carlini-Wagner margin")
-    p.add_argument('--global_margin', type=float, default=10.0)
-    p.add_argument('--global_init', choices=['zero', 'rand'], default='zero')
-    p.add_argument('--global_l2_budget', type=float, default=1.5,
-                   help='from_scratch: L2 radius of the universal trigger (= stealth budget)')
     p.add_argument('--lambda_align', type=float, default=1.0)
     p.add_argument('--lambda_align_global', type=float, default=0.5)
     p.add_argument('--lambda_perc', type=float, default=0.3)
