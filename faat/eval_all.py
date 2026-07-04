@@ -52,12 +52,11 @@ def eval_one(rdir, dev):
     asr, ba = last20_asr_ba(rdir)
     if asr is None:
         return None
-    save_trigger = 'resource/faat/v4/%s/%s' % (ds, name.replace('_seed', '_seed').replace(ds + '_', '').replace(ds + '_', ''))
-    # reconstruct save_trigger path from run name convention used in gen_queue
-    # name = "<ds>_l2_<l2>_seed<sd>"; save_trigger = resource/faat/v4/<ds>/<l2>_<seed>
+    # reconstruct save_trigger path from run name "<ds>_l2_<l2>_seed<sd>"
+    # (split on '_' -> ['<ds>','l2','<l2>','seed<sd>']; 'seed<sd>' is one token)
     parts = name.split('_')
     l2 = parts[parts.index('l2') + 1]
-    sd = parts[parts.index('seed') + 1]
+    sd = [p for p in parts if p.startswith('seed')][0].replace('seed', '')
     save_trigger = 'resource/faat/v4/%s/l2_%s_seed%s' % (ds, l2, sd)
     delta_global = os.path.join(save_trigger, 'global_delta.npy')
     print('  stage_b_metrics + defenses for %s ...' % name)

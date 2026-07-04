@@ -1,0 +1,17 @@
+[
+  {
+    "run": "gtsrb_l2_3.5_seed1",
+    "dataset": "gtsrb",
+    "L2": "3.5",
+    "seed": "1",
+    "ASR": 86.17,
+    "BA": 99.89,
+    "L2_meas": 3.38,
+    "SSIM": 0.7255,
+    "DCT": 0.0377,
+    "AC_AUC": 0.718,
+    "SS_AUC": 0.737,
+    "STRIP_TPR5": 0.464,
+    "FP_ASR@0.9": 93.4
+  }
+]
