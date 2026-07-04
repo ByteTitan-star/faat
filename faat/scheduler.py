@@ -73,18 +73,26 @@ def _run_state(spec, log_dir, alive_secs=180):
     fresh   : nothing alive -> safe to (re)dispatch."""
     import re
     rlog = os.path.join(spec['result_dir'], 'output_1.log')
-    if os.path.exists(rlog):
-        last_ep = -1
-        for ln in open(rlog):
+    prank = os.path.join(log_dir, spec['name'] + '.log')   # scheduler per-run stdout
+    last_ep = -1
+    recent = False
+    for lg in (rlog, prank):
+        if not os.path.exists(lg):
+            continue
+        for ln in open(lg):
             m = re.search(r'\] - (.+)$', ln)
             t = (m.group(1) if m else ln).split()
-            # require a FULL epoch row (>=9 cols) -- excludes the "] - 500" poison-count line
             if len(t) >= 9 and re.match(r'^\d+$', t[0]):
-                last_ep = max(last_ep, int(t[0]))
-        if last_ep >= 299:
-            return 'done'
-        if time.time() - os.path.getmtime(rlog) < alive_secs:
-            return 'running'
+                last_ep = max(last_ep, int(t[0]))   # full epoch row (excludes "] - 500")
+        if time.time() - os.path.getmtime(lg) < alive_secs:
+            recent = True
+    if last_ep >= 299:
+        return 'done'                                 # also catches runs whose only log is the per-run log
+    if recent:
+        return 'running'
+    has_model = os.path.exists(os.path.join(spec['result_dir'], 'model_last.pth'))
+    if has_model:
+        return 'done'                                 # model saved => training finished
     prank = os.path.join(log_dir, spec['name'] + '.log')
     if os.path.exists(prank) and time.time() - os.path.getmtime(prank) < alive_secs:
         return 'running'
