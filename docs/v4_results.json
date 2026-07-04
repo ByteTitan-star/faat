@@ -1,5 +1,20 @@
 [
   {
+    "run": "gtsrb_l2_2.5_seed1",
+    "dataset": "gtsrb",
+    "L2": "2.5",
+    "seed": "1",
+    "ASR": 69.19,
+    "BA": 99.96,
+    "L2_meas": 2.452,
+    "SSIM": 0.8024,
+    "DCT": 0.0269,
+    "AC_AUC": 0.728,
+    "SS_AUC": 0.841,
+    "STRIP_TPR5": 0.236,
+    "FP_ASR@0.9": 76.5
+  },
+  {
     "run": "gtsrb_l2_3.5_seed1",
     "dataset": "gtsrb",
     "L2": "3.5",

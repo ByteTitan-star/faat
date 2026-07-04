@@ -59,17 +59,19 @@ def eval_one(rdir, dev):
     sd = [p for p in parts if p.startswith('seed')][0].replace('seed', '')
     save_trigger = 'resource/faat/v4/%s/l2_%s_seed%s' % (ds, l2, sd)
     delta_global = os.path.join(save_trigger, 'global_delta.npy')
-    print('  stage_b_metrics + defenses for %s ...' % name)
-    # stealth + AC/SS
-    subprocess.run([PY, '-m', 'faat.stage_b_metrics', '--device', dev,
-                    '--save_trigger', save_trigger, '--rdir', rdir,
-                    '--dataset', ds, '--data_dir', data_dir_of(ds)],
-                   stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    # STRIP + FP
-    subprocess.run([PY, '-m', 'faat.defenses', '--device', dev, '--dataset', ds,
-                    '--data_dir', data_dir_of(ds), '--model_dir', rdir,
-                    '--delta_global', delta_global, '--y_target', '0'],
-                   stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    sb_path = os.path.join(rdir, 'stageB_metrics.json')
+    df_path = os.path.join(rdir, 'defenses.json')
+    have = os.path.exists(sb_path) and os.path.exists(df_path)
+    if not have:                       # idempotent: only run heavy eval if missing
+        print('  stage_b_metrics + defenses for %s ...' % name)
+        subprocess.run([PY, '-m', 'faat.stage_b_metrics', '--device', dev,
+                        '--save_trigger', save_trigger, '--rdir', rdir,
+                        '--dataset', ds, '--data_dir', data_dir_of(ds)],
+                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        subprocess.run([PY, '-m', 'faat.defenses', '--device', dev, '--dataset', ds,
+                        '--data_dir', data_dir_of(ds), '--model_dir', rdir,
+                        '--delta_global', delta_global, '--y_target', '0'],
+                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     sb = json.load(open(os.path.join(rdir, 'stageB_metrics.json')))
     df = json.load(open(os.path.join(rdir, 'defenses.json')))
     # defense-post ASR (FP) at prune=0.9 (most aggressive) -- ASR should stay high
@@ -97,8 +99,13 @@ def main():
     recs = []
     for rdir in rdirs:
         name = os.path.basename(rdir).replace('faatb_v4_', '')
-        if args.only and args.only not in name:
-            continue
+        # --only forces re-eval of matching runs (delete cached metrics); aggregation
+        # always includes ALL completed runs so the table accumulates correctly.
+        if args.only and args.only in name:
+            for p in (os.path.join(rdir, 'stageB_metrics.json'),
+                      os.path.join(rdir, 'defenses.json')):
+                if os.path.exists(p):
+                    os.remove(p)
         log = os.path.join(rdir, 'output_1.log')
         if not os.path.exists(log):
             continue
