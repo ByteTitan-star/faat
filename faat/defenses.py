@@ -183,15 +183,30 @@ def main():
     ap.add_argument('--model_dir', default='results/faatb_v3_1_scale_0.2')
     ap.add_argument('--delta_global', default='resource/faat/v3_1/scale_0.2/global_delta.npy')
     ap.add_argument('--y_target', type=int, default=0)
+    ap.add_argument('--dataset', default='cifar10',
+                    help="cifar10 | gtsrb (ImageFolder). Controls train/test data loading.")
+    ap.add_argument('--data_dir', default='./data',
+                    help='ImageFolder root for gtsrb (expects train/ + val/)')
+    ap.add_argument('--num_classes', type=int, default=None,
+                    help='override num_classes (else read from checkpoint)')
     ap.add_argument('--device', default='cuda')
     args = ap.parse_args()
     dev = args.device
 
-    ds = datasets.CIFAR10('./data', train=True, transform=transforms.ToTensor(), download=False)
-    test_ds = datasets.CIFAR10('./data', train=False, transform=transforms.ToTensor())
+    if args.dataset == 'cifar10':
+        ds = datasets.CIFAR10('./data', train=True, transform=transforms.ToTensor(), download=False)
+        test_ds = datasets.CIFAR10('./data', train=False, transform=transforms.ToTensor())
+    elif args.dataset == 'cifar100':
+        ds = datasets.CIFAR100('./data100', train=True, transform=transforms.ToTensor(), download=False)
+        test_ds = datasets.CIFAR100('./data100', train=False, transform=transforms.ToTensor())
+    else:   # gtsrb / ImageFolder (32x32)
+        tf = transforms.Compose([transforms.Resize(32), transforms.ToTensor()])
+        ds = datasets.ImageFolder(os.path.join(args.data_dir, 'train'), transform=tf)
+        test_ds = datasets.ImageFolder(os.path.join(args.data_dir, 'val'), transform=tf)
     pj = json.load(open(os.path.join(args.model_dir, 'poison_inds.json')))
     ck = torch.load(os.path.join(args.model_dir, 'model_last.pth'), map_location='cpu')
-    model = ResNet18(num_classes=int(ck.get('num_classes', 10)))
+    nc = args.num_classes if args.num_classes else int(ck.get('num_classes', 10))
+    model = ResNet18(num_classes=nc)
     model.load_state_dict(ck['state_dict'])
     model._delta_global_path = args.delta_global
     model = model.to(dev).eval()

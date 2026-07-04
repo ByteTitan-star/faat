@@ -34,14 +34,25 @@ def main():
     ap.add_argument('--n_stealth', type=int, default=256)
     ap.add_argument('--n_clean', type=int, default=2000)
     ap.add_argument('--seed', type=int, default=1)
+    ap.add_argument('--dataset', default='cifar10',
+                    help="cifar10 | cifar100 | gtsrb(ImageFolder). Data source for stealth/detection.")
+    ap.add_argument('--data_dir', default='./data',
+                    help='ImageFolder root for gtsrb (expects train/ + val/)')
     args = ap.parse_args()
     save_trigger = args.save_trigger
     rdir = args.rdir
     dev = args.device
     torch.manual_seed(args.seed)
 
-    ds = datasets.CIFAR10(root='./data', train=True, transform=transforms.ToTensor(),
-                          download=False)
+    if args.dataset == 'cifar10':
+        ds = datasets.CIFAR10(root='./data', train=True, transform=transforms.ToTensor(),
+                              download=False)
+    elif args.dataset == 'cifar100':
+        ds = datasets.CIFAR100(root='./data100', train=True, transform=transforms.ToTensor(),
+                               download=False)
+    else:   # gtsrb / ImageFolder (32x32)
+        tf = transforms.Compose([transforms.Resize(32), transforms.ToTensor()])
+        ds = datasets.ImageFolder(os.path.join(args.data_dir, 'train'), transform=tf)
     dg = torch.from_numpy(np.load(os.path.join(save_trigger, 'global_delta.npy'))).float()
     adaptive = np.load(os.path.join(save_trigger, 'adaptive_delta.npy'))      # [N,3,32,32]
     keys = np.load(os.path.join(save_trigger, 'poison_keys.npy'))             # [N]
