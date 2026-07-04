@@ -1,0 +1,4 @@
+run,dataset,L2,seed,ASR,BA,L2_meas,SSIM,DCT,AC_AUC,SS_AUC,STRIP_TPR5,FP_ASR@0.9
+faatb_v5b_gtsrb_l2_2.5_seed1,cifar10,2.5,1,67.89,99.93,2.452,0.8024,0.0269,0.74,0.767,,
+faatb_v5b_gtsrb_l2_3.0_seed1,cifar10,3.0,1,69.02,99.85,,,,,,,
+faatb_v5b_gtsrb_l2_3.5_seed1,cifar10,3.5,1,86.08,99.88,,,,,,,

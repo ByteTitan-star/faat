@@ -1,0 +1,65 @@
+[
+  {
+    "run": "badnets_seed1",
+    "attack": "badnets",
+    "seed": "1",
+    "ASR": 0.0,
+    "BA": 99.95
+  },
+  {
+    "run": "badnets_seed2",
+    "attack": "badnets",
+    "seed": "2",
+    "ASR": 0.0,
+    "BA": 99.96
+  },
+  {
+    "run": "badnets_seed3",
+    "attack": "badnets",
+    "seed": "3",
+    "ASR": 0.0,
+    "BA": 99.95
+  },
+  {
+    "run": "blend_seed1",
+    "attack": "blend",
+    "seed": "1",
+    "ASR": 34.75,
+    "BA": 99.87
+  },
+  {
+    "run": "blend_seed2",
+    "attack": "blend",
+    "seed": "2",
+    "ASR": 36.07,
+    "BA": 99.92
+  },
+  {
+    "run": "blend_seed3",
+    "attack": "blend",
+    "seed": "3",
+    "ASR": 31.57,
+    "BA": 99.88
+  },
+  {
+    "run": "quantize_rgb_seed1",
+    "attack": "quantize_rgb",
+    "seed": "1",
+    "ASR": 0.0,
+    "BA": 99.95
+  },
+  {
+    "run": "quantize_rgb_seed2",
+    "attack": "quantize_rgb",
+    "seed": "2",
+    "ASR": 0.0,
+    "BA": 99.95
+  },
+  {
+    "run": "quantize_rgb_seed3",
+    "attack": "quantize_rgb",
+    "seed": "3",
+    "ASR": 0.0,
+    "BA": 99.95
+  }
+]

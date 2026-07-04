@@ -14,18 +14,24 @@ import json
 import glob
 
 
-def last20_asr_ba(rdir):
-    """ASR(PoisonACC col7)/BA(CleanACC col9) last-20-epoch mean."""
+def last20_asr_ba(rdir, name=None, log_dir='logs/v5_baselines'):
+    """ASR(PoisonACC col7)/BA(CleanACC col9) last-20-epoch mean.
+    Falls back to the scheduler per-run log if output_1.log is missing."""
     rows = []
-    log = os.path.join(rdir, 'output_1.log')
-    if not os.path.exists(log):
-        return None, None
-    for ln in open(log):
-        m = re.search(r'\] - (.+)$', ln)
-        body = m.group(1) if m else ln
-        t = body.split()
-        if len(t) >= 9 and re.match(r'^\d+$', t[0]):
-            rows.append((float(t[6]), float(t[8])))
+    cands = [os.path.join(rdir, 'output_1.log')]
+    if name:
+        cands.append(os.path.join(log_dir, name + '.log'))
+    for log in cands:
+        if not os.path.exists(log):
+            continue
+        for ln in open(log):
+            m = re.search(r'\] - (.+)$', ln)
+            body = m.group(1) if m else ln
+            t = body.split()
+            if len(t) >= 9 and re.match(r'^\d+$', t[0]):
+                rows.append((float(t[6]), float(t[8])))
+        if rows:
+            break
     if not rows:
         return None, None
     last = rows[-20:]
@@ -35,7 +41,7 @@ def last20_asr_ba(rdir):
 
 def main():
     recs = []
-    for rdir in sorted(glob.glob('results/gtsrb_baseline_*')):
+    for rdir in sorted(glob.glob('results/gtsrb_*_seed*')):
         base = os.path.basename(rdir).replace('gtsrb_', '')   # <tag>_seed<sd>
         parts = base.split('_seed')
         tag = parts[0]
@@ -52,7 +58,7 @@ def main():
         if last_ep < 299 and not os.path.exists(os.path.join(rdir, 'model_last.pth')):
             print('skip %s (ep%d, not done)' % (base, last_ep))
             continue
-        asr, ba = last20_asr_ba(rdir)
+        asr, ba = last20_asr_ba(rdir, os.path.basename(rdir))
         if asr is None:
             print('skip %s (no epoch rows)' % base)
             continue
