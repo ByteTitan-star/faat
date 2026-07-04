@@ -15,6 +15,36 @@
     "FP_ASR@0.9": 67.1
   },
   {
+    "run": "cifar10_l2_1.2_seed1",
+    "dataset": "cifar10",
+    "L2": "1.2",
+    "seed": "1",
+    "ASR": 89.85,
+    "BA": 94.66,
+    "L2_meas": 1.191,
+    "SSIM": 0.9673,
+    "DCT": 0.0141,
+    "AC_AUC": 0.389,
+    "SS_AUC": 0.441,
+    "STRIP_TPR5": 0.0,
+    "FP_ASR@0.9": 85.9
+  },
+  {
+    "run": "cifar10_l2_1.5_seed1",
+    "dataset": "cifar10",
+    "L2": "1.5",
+    "seed": "1",
+    "ASR": 96.25,
+    "BA": 94.58,
+    "L2_meas": 1.49,
+    "SSIM": 0.95,
+    "DCT": 0.0168,
+    "AC_AUC": 0.221,
+    "SS_AUC": 0.449,
+    "STRIP_TPR5": 0.056,
+    "FP_ASR@0.9": 96.7
+  },
+  {
     "run": "gtsrb_l2_2.5_seed1",
     "dataset": "gtsrb",
     "L2": "2.5",
@@ -27,6 +57,21 @@
     "AC_AUC": 0.728,
     "SS_AUC": 0.841,
     "STRIP_TPR5": 0.236,
+    "FP_ASR@0.9": 76.5
+  },
+  {
+    "run": "gtsrb_l2_3.0_seed1",
+    "dataset": "gtsrb",
+    "L2": "3.0",
+    "seed": "1",
+    "ASR": 70.66,
+    "BA": 99.9,
+    "L2_meas": 2.918,
+    "SSIM": 0.7613,
+    "DCT": 0.0312,
+    "AC_AUC": 0.731,
+    "SS_AUC": 0.727,
+    "STRIP_TPR5": 0.232,
     "FP_ASR@0.9": 76.5
   },
   {

@@ -21,15 +21,24 @@ import subprocess
 PY = '/media/hd1/wangxin/work7-7month/.conda-envs/GeneralComponents/bin/python'
 
 
-def last20_asr_ba(rdir):
-    log = os.path.join(rdir, 'output_1.log')
+def last20_asr_ba(rdir, name=None):
+    """Parse last-20 ASR/BA. Prefer results/.../output_1.log; fall back to the
+    scheduler per-run log (logs/v4/<name>.log) which captures the same stdout."""
+    cands = [os.path.join(rdir, 'output_1.log')]
+    if name:
+        cands.append(os.path.join('logs', 'v4', name + '.log'))
     rows = []
-    for ln in open(log):
-        m = re.search(r'\] - (.+)$', ln)
-        body = m.group(1) if m else ln
-        t = body.split()
-        if len(t) >= 9 and re.match(r'^\d+$', t[0]):
-            rows.append((float(t[6]), float(t[8])))   # ASR, BA
+    for log in cands:
+        if not os.path.exists(log):
+            continue
+        for ln in open(log):
+            m = re.search(r'\] - (.+)$', ln)
+            body = m.group(1) if m else ln
+            t = body.split()
+            if len(t) >= 9 and re.match(r'^\d+$', t[0]):
+                rows.append((float(t[6]), float(t[8])))   # ASR, BA
+        if rows:
+            break
     if not rows:
         return None, None
     last = rows[-20:]
@@ -49,7 +58,7 @@ def data_dir_of(ds):
 def eval_one(rdir, dev):
     name = os.path.basename(rdir).replace('faatb_v4_', '')
     ds = dataset_of(name)
-    asr, ba = last20_asr_ba(rdir)
+    asr, ba = last20_asr_ba(rdir, name)
     if asr is None:
         return None
     # reconstruct save_trigger path from run name "<ds>_l2_<l2>_seed<sd>"
@@ -107,15 +116,19 @@ def main():
                 if os.path.exists(p):
                     os.remove(p)
         log = os.path.join(rdir, 'output_1.log')
-        if not os.path.exists(log):
-            continue
+        prank = os.path.join('logs', 'v4', name + '.log')
+        # a run is "done" if it reached ep>=299 in either log, OR model_last.pth exists
         last_ep = -1
-        for l in open(log):
-            m = re.search(r'\] - (.+)$', l)
-            t = (m.group(1) if m else l).split()
-            if len(t) >= 9 and re.match(r'^\d+$', t[0]):
-                last_ep = max(last_ep, int(t[0]))   # require full epoch row (excludes "] - 500" poison-count line)
-        if last_ep < 299:
+        for lg in (log, prank):
+            if not os.path.exists(lg):
+                continue
+            for l in open(lg):
+                m = re.search(r'\] - (.+)$', l)
+                t = (m.group(1) if m else l).split()
+                if len(t) >= 9 and re.match(r'^\d+$', t[0]):
+                    last_ep = max(last_ep, int(t[0]))
+        has_model = os.path.exists(os.path.join(rdir, 'model_last.pth'))
+        if last_ep < 299 and not has_model:
             print('skip %s (ep%d, not done)' % (name, last_ep))
             continue
         print('eval %s' % name)
