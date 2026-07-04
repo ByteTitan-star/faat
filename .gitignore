@@ -12,3 +12,8 @@ __pycache__/
 # nohup 原始屏幕输出(重复且有PIL噪音);训练日志 output_*.log 保留(含ASR/BA)
 *.stdout
 *.PARTIAL_*
+
+# v4: experiment outputs (logs/models) too big for GitHub, reproducible from code
+results/
+logs/
+*.log
