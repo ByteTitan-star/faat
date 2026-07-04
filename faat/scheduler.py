@@ -63,27 +63,33 @@ def pick_free_gpu(busy, exclude, min_free_mb=8000, util_max=30):
     return None
 
 
-def _run_state(result_dir, alive_secs=180):
-    """Filesystem probe of one run: 'done' (ep>=299) | 'running' (recently written)
-    | 'fresh'. Used for crash-resume + dedup so a relaunched scheduler neither
-    re-runs finished jobs nor collides with ones still training externally."""
+def _run_state(spec, log_dir, alive_secs=180):
+    """Filesystem probe of one run: 'done' | 'running' | 'fresh'.
+    done    : victim reached ep>=299 (result_dir/output_1.log)
+    running : any live signal recently written -- the per-run scheduler log
+              (covers Narcissus generation + adaptive opt + victim epochs) OR the
+              victim output_1.log. Detects jobs launched by another scheduler
+              instance / orphaned after a restart, so we skip rather than stack.
+    fresh   : nothing alive -> safe to (re)dispatch."""
     import re
-    log = os.path.join(result_dir, 'output_1.log')
-    if not os.path.exists(log):
-        return 'fresh'
-    last_ep = -1
-    for ln in open(log):
-        m = re.search(r'\] - (\d+)\s', ln)
-        if m:
-            last_ep = int(m.group(1))
-    if last_ep >= 299:
-        return 'done'
-    if time.time() - os.path.getmtime(log) < alive_secs:
+    rlog = os.path.join(spec['result_dir'], 'output_1.log')
+    if os.path.exists(rlog):
+        last_ep = -1
+        for ln in open(rlog):
+            m = re.search(r'\] - (\d+)\s', ln)
+            if m:
+                last_ep = int(m.group(1))
+        if last_ep >= 299:
+            return 'done'
+        if time.time() - os.path.getmtime(rlog) < alive_secs:
+            return 'running'
+    prank = os.path.join(log_dir, spec['name'] + '.log')
+    if os.path.exists(prank) and time.time() - os.path.getmtime(prank) < alive_secs:
         return 'running'
-    return 'fresh'   # stale incomplete -> safe to retry
+    return 'fresh'
 
 
-def reconcile(queue, state):
+def reconcile(queue, state, log_dir):
     """Sync state with the filesystem each poll. Marks externally-completed runs
     'done' and externally-running runs 'ext_running' (skipped, not reaped here)."""
     changed = False
@@ -92,7 +98,7 @@ def reconcile(queue, state):
         cur = state.get(name, {}).get('status', 'queued')
         if cur in ('done', 'failed', 'running'):
             continue                  # don't clobber active/tracked states
-        fs = _run_state(spec['result_dir'])
+        fs = _run_state(spec, log_dir)
         if fs == 'done':
             state[name] = {**state.get(name, {}), 'status': 'done', 'finished': 'fs'}
             changed = True
@@ -208,7 +214,7 @@ def main():
     while True:
         # filesystem reconcile: pick up externally-done (skip) / externally-running
         # (skip) runs -> crash-resume + dedup, never re-launch a finished job.
-        if reconcile(queue, state):
+        if reconcile(queue, state, args.log_dir):
             _save(state, args.state)
 
         # reap finished
