@@ -133,5 +133,50 @@
     "SS_AUC": 0.719,
     "STRIP_TPR5": 0.158,
     "FP_ASR@0.9": 55.0
+  },
+  {
+    "run": "gtsrb_l2_3.0_seed1",
+    "dataset": "gtsrb",
+    "L2": "3.0",
+    "seed": "1",
+    "ASR": 71.55,
+    "BA": 99.9,
+    "L2_meas": 2.92,
+    "SSIM": 0.7598,
+    "DCT": 0.032,
+    "AC_AUC": 0.685,
+    "SS_AUC": 0.797,
+    "STRIP_TPR5": 0.39,
+    "FP_ASR@0.9": 76.9
+  },
+  {
+    "run": "gtsrb_l2_3.0_seed2",
+    "dataset": "gtsrb",
+    "L2": "3.0",
+    "seed": "2",
+    "ASR": 70.27,
+    "BA": 99.92,
+    "L2_meas": 2.924,
+    "SSIM": 0.7598,
+    "DCT": 0.0327,
+    "AC_AUC": 0.652,
+    "SS_AUC": 0.754,
+    "STRIP_TPR5": 0.28,
+    "FP_ASR@0.9": 77.2
+  },
+  {
+    "run": "gtsrb_l2_3.0_seed3",
+    "dataset": "gtsrb",
+    "L2": "3.0",
+    "seed": "3",
+    "ASR": 71.42,
+    "BA": 99.92,
+    "L2_meas": 2.919,
+    "SSIM": 0.763,
+    "DCT": 0.0331,
+    "AC_AUC": 0.728,
+    "SS_AUC": 0.816,
+    "STRIP_TPR5": 0.376,
+    "FP_ASR@0.9": 69.4
   }
 ]
