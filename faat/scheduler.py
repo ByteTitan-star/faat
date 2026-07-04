@@ -76,9 +76,11 @@ def _run_state(spec, log_dir, alive_secs=180):
     if os.path.exists(rlog):
         last_ep = -1
         for ln in open(rlog):
-            m = re.search(r'\] - (\d+)\s', ln)
-            if m:
-                last_ep = int(m.group(1))
+            m = re.search(r'\] - (.+)$', ln)
+            t = (m.group(1) if m else ln).split()
+            # require a FULL epoch row (>=9 cols) -- excludes the "] - 500" poison-count line
+            if len(t) >= 9 and re.match(r'^\d+$', t[0]):
+                last_ep = max(last_ep, int(t[0]))
         if last_ep >= 299:
             return 'done'
         if time.time() - os.path.getmtime(rlog) < alive_secs:
