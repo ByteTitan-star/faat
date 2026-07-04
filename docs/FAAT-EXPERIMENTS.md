@@ -190,4 +190,17 @@ scale0.2 和 scale0.17 各 3 种子(CIFAR-10 res-square @1%)。
 
 
 
-对每个 faat run 的 `model_last.pth` + `poison_inds.json`：用 `metrics/stealth.py`(对投毒前后算 L2/SSIM/DCT-L1) + `metrics/detection.py`(AC/SS AUC/TPR@1%FPR，复用 extract_feature)。
+## 防御评估(AC/SS/STRIP/Fine-Pruning) —— 2026-07-04，4/4 失效 ✅
+对 v3.1 冠军 scale 0.2 和 0.17。代码: `faat/defenses.py` + `metrics/detection.py`。
+
+| Defense | scale 0.2 | scale 0.17 | 解读 |
+|---|---|---|---|
+| **AC**(聚类) | AUC 0.223 / TPR@1%=0 | AUC 0.308 / TPR@1%=0 | 投毒不独立成簇 |
+| **SS**(谱) | AUC 0.416 / TPR@1%=0 | AUC 0.420 / TPR@1%=0 | 谱方向不可分离 |
+| **STRIP**(扰动熵) | AUC 0.755 / **TPR@5%=0.044** | AUC 0.705 / **TPR@5%=0.064** | 严格误报仅捕获4–6% |
+| **Fine-Pruning**(剪枝) | ASR 96.0→96.2(90%剪) | ASR 90.2→90.5(90%剪) | ASR纹丝不动 |
+
+- **AC/SS**:投毒特征嵌在目标簇内,聚类/谱方法无法分离(AUC<0.5, TPR@1%=0)。
+- **STRIP**:有界adaptive+Narcissus使触发对扰动不改变预测一致性,TPR@5%仅4–6%。
+- **FP**:信号分散在目标类主要神经元,不集中在少数"异常"神经元,剪枝无法隔离。
+- **4/4 全失效** → v3.1 对四种范式(聚类/谱/扰动/剪枝)防御均鲁棒。数据在 `results/*/defenses.json`。
