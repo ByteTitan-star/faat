@@ -63,6 +63,45 @@ def pick_free_gpu(busy, exclude, min_free_mb=8000, util_max=30):
     return None
 
 
+def _run_state(result_dir, alive_secs=180):
+    """Filesystem probe of one run: 'done' (ep>=299) | 'running' (recently written)
+    | 'fresh'. Used for crash-resume + dedup so a relaunched scheduler neither
+    re-runs finished jobs nor collides with ones still training externally."""
+    import re
+    log = os.path.join(result_dir, 'output_1.log')
+    if not os.path.exists(log):
+        return 'fresh'
+    last_ep = -1
+    for ln in open(log):
+        m = re.search(r'\] - (\d+)\s', ln)
+        if m:
+            last_ep = int(m.group(1))
+    if last_ep >= 299:
+        return 'done'
+    if time.time() - os.path.getmtime(log) < alive_secs:
+        return 'running'
+    return 'fresh'   # stale incomplete -> safe to retry
+
+
+def reconcile(queue, state):
+    """Sync state with the filesystem each poll. Marks externally-completed runs
+    'done' and externally-running runs 'ext_running' (skipped, not reaped here)."""
+    changed = False
+    for spec in queue:
+        name = spec['name']
+        cur = state.get(name, {}).get('status', 'queued')
+        if cur in ('done', 'failed', 'running'):
+            continue                  # don't clobber active/tracked states
+        fs = _run_state(spec['result_dir'])
+        if fs == 'done':
+            state[name] = {**state.get(name, {}), 'status': 'done', 'finished': 'fs'}
+            changed = True
+        elif fs == 'running':
+            state[name] = {**state.get(name, {}), 'status': 'ext_running'}
+            changed = True
+    return changed
+
+
 # --------------------------------------------------------------------------- #
 # Job construction
 # --------------------------------------------------------------------------- #
@@ -165,10 +204,13 @@ def main():
         _save(state, args.state)
 
     busy_gpu = set()
-    pending = [s for s in queue if state[s['name']]['status'] == 'queued']
-    print('[sched] pending=%d' % len(pending))
 
-    while pending or running:
+    while True:
+        # filesystem reconcile: pick up externally-done (skip) / externally-running
+        # (skip) runs -> crash-resume + dedup, never re-launch a finished job.
+        if reconcile(queue, state):
+            _save(state, args.state)
+
         # reap finished
         still = {}
         for name, info in list(running.items()):
@@ -185,14 +227,24 @@ def main():
                 _save(state, args.state)
         running = still
 
-        # dispatch to free GPUs
+        # pending = queued specs not yet dispatched (recomputed each poll)
+        pending = [s for s in queue if state[s['name']]['status'] == 'queued']
+
+        # dispatch one job to a free GPU
         if pending:
             g = pick_free_gpu(busy_gpu, exclude, args.min_free_mb, args.util_max)
             if g is not None:
-                spec = pending.pop(0)
+                spec = pending[0]
                 busy_gpu.add(g)
                 launch(spec, g)
                 continue
+
+        # termination: nothing queued, nothing running, nothing externally running
+        if not pending and not running:
+            ext = [n for n, s in state.items() if s.get('status') == 'ext_running']
+            if not ext:
+                break
+            print('[sched] waiting on %d externally-running job(s): %s' % (len(ext), ext))
 
         time.sleep(args.poll)
 
