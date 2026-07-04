@@ -1,5 +1,20 @@
 [
   {
+    "run": "cifar10_l2_0.9_seed1",
+    "dataset": "cifar10",
+    "L2": "0.9",
+    "seed": "1",
+    "ASR": 72.72,
+    "BA": 94.76,
+    "L2_meas": 0.895,
+    "SSIM": 0.9791,
+    "DCT": 0.0103,
+    "AC_AUC": 0.376,
+    "SS_AUC": 0.429,
+    "STRIP_TPR5": 0.01,
+    "FP_ASR@0.9": 67.1
+  },
+  {
     "run": "gtsrb_l2_2.5_seed1",
     "dataset": "gtsrb",
     "L2": "2.5",
