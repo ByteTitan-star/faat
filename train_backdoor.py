@@ -16,6 +16,13 @@ from cifar_resnet import ResNet18, ResNet50, ResNet34
 from utils import *
 from PIL import Image
 
+# Silence PIL's per-chunk PNG decode debug spam. GTSRB ImageFolder loads tens of
+# thousands of PNGs; with the root logger at DEBUG (set below) PIL emits millions
+# of "STREAM b'IHDR'/b'IDAT'" lines -> ~111MB log per run. Victim training is a
+# separate subprocess, so this must be silenced here too (not only in train_faat).
+for _pil_logger in ('PIL', 'PIL.PngImagePlugin', 'PIL.ImageFile'):
+    logging.getLogger(_pil_logger).setLevel(logging.WARNING)
+
 def train_step(model, criterion, optimizer, data_loader):
     model.train()
     total_correct = 0

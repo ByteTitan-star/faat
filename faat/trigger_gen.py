@@ -27,13 +27,15 @@ from .image_stats import _band_index_map, N_BANDS
 
 class FAATGenerator(nn.Module):
     def __init__(self, size=32, n_bands=N_BANDS, eps_max=0.05,
-                 sparse_gate=False, init_global=None, adaptive_l2_max=0.0):
+                 sparse_gate=False, init_global=None, adaptive_l2_max=0.0,
+                 adaptive_l2_ratio=0.0):
         super().__init__()
         self.size = size
         self.n_bands = n_bands
         self.eps_max = float(eps_max)
         self.sparse_gate = bool(sparse_gate)
-        self.adaptive_l2_max = float(adaptive_l2_max)   # 0 = unbounded (v3 bug)
+        self.adaptive_l2_max = float(adaptive_l2_max)        # absolute |da| budget (0=off)
+        self.adaptive_l2_ratio = float(adaptive_l2_ratio)    # v5: |da| budget = ratio*||dg|| (0=off)
 
         # delta_global: the shared, test-time direction.
         self.delta_global = nn.Parameter(torch.zeros(3, size, size))
@@ -74,9 +76,18 @@ class FAATGenerator(nn.Module):
         # making delta_adaptive a train-only co-trigger that broke C2 (test uses
         # delta_global only). Project (shrink-only) so adaptive stays a mild
         # shaping perturbation, never the dominant trigger.
-        if self.adaptive_l2_max > 0:
+        if self.adaptive_l2_ratio > 0 or self.adaptive_l2_max > 0:
+            # v5 relative budget (ratio*||delta_global||) takes precedence over the
+            # v3.1 absolute budget. Relative is dataset-agnostic: on GTSRB ||dg||~3
+            # so the L_align shaping budget scales up with the global trigger instead
+            # of being starved at a fixed 0.15 (only ~5% of ||dg|| on GTSRB vs ~10%
+            # on CIFAR) -- that starvation was the root cause of GTSRB AC/SS leakage.
+            if self.adaptive_l2_ratio > 0:
+                budget = self.adaptive_l2_ratio * self.delta_global.detach().norm()
+            else:
+                budget = self.adaptive_l2_max
             norms = da.flatten(1).norm(dim=1)                       # [B]
-            factor = (self.adaptive_l2_max / (norms + 1e-9)).clamp(max=1.0)
+            factor = (budget / (norms + 1e-9)).clamp(max=1.0)
             da = da * factor.view(B, 1, 1, 1)
 
         delta = dg + da

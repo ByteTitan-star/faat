@@ -14,7 +14,15 @@ Example (optimise then train the victim on GPU2):
 """
 import os
 import sys
+import logging
 import subprocess
+
+# Silence PIL PNG decode debug spam during proxy/trigger optimisation on GTSRB
+# (ImageFolder loads tens of thousands of PNGs; root DEBUG -> ~111MB "STREAM
+# b'IHDR'" per run). Victim training is a separate subprocess, silenced inside
+# train_backdoor.py.
+for _pil_logger in ('PIL', 'PIL.PngImagePlugin', 'PIL.ImageFile'):
+    logging.getLogger(_pil_logger).setLevel(logging.WARNING)
 
 from faat.optimize import run_optimization, build_argparser
 

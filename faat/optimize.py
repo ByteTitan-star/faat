@@ -106,7 +106,8 @@ def run_optimization(cfg):
                                         cfg.init_random, device)
     gen = FAATGenerator(size=cfg.size, n_bands=cfg.n_bands, eps_max=cfg.eps_max,
                         sparse_gate=cfg.sparse_gate, init_global=init_g,
-                        adaptive_l2_max=getattr(cfg, 'adaptive_l2_max', 0.0)).to(device)
+                        adaptive_l2_max=getattr(cfg, 'adaptive_l2_max', 0.0),
+                        adaptive_l2_ratio=getattr(cfg, 'adaptive_l2_ratio', 0.0)).to(device)
     policy = StrategyNet(n_bands=cfg.n_bands).to(device)
     band_idx = gen.band_idx                                                # [H,W] on device
 
@@ -274,6 +275,12 @@ def build_argparser():
     p.add_argument('--adaptive_l2_max', type=float, default=0.0,
                    help='v3.1: hard per-sample L2 budget on delta_adaptive (0=unbounded). '
                         'Keep << |delta_global| so adaptive cannot become a train-only co-trigger (C2).')
+    p.add_argument('--adaptive_l2_ratio', type=float, default=0.0,
+                   help='v5: per-sample |delta_adaptive| budget as a FRACTION of ||delta_global|| '
+                        '(0=off -> use --adaptive_l2_max). Dataset-agnostic: keeps the L_align shaping '
+                        'budget proportional to the global trigger scale (GTSRB ||dg||~3 needs a larger '
+                        'absolute budget than CIFAR ||dg||~1.5 to embed poison into the target cluster '
+                        'and evade AC/SS). 0.12 ~= 12%% of ||delta_global||.')
     p.add_argument('--eps_max', type=float, default=0.05)
     p.add_argument('--n_bands', type=int, default=N_BANDS)
     p.add_argument('--size', type=int, default=32)

@@ -148,8 +148,10 @@ def build_command(spec, gpu, log_dir):
         '--global_steps', str(s.get('global_steps', 8000)),
         '--global_lr', str(s.get('global_lr', 0.02)),
         '--global_loss', str(s.get('global_loss', 'ce')),
+        '--global_margin', str(s.get('global_margin', 10.0)),
         # v3.1 recipe on top: freeze the generated global, bounded adaptive
         '--fix_global', '--adaptive_l2_max', str(s.get('adaptive_l2_max', 0.15)),
+        '--adaptive_l2_ratio', str(s.get('adaptive_l2_ratio', 0.0)),
         '--eps_max', str(s.get('eps_max', 0.05)),
         '--lambda_align', str(s.get('lambda_align', 1.0)),
         '--lambda_perc', str(s.get('lambda_perc', 0.3)),
