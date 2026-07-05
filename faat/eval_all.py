@@ -55,8 +55,12 @@ def data_dir_of(ds):
     return 'data/GTSRB32' if ds == 'gtsrb' else './data'
 
 
-def eval_one(rdir, dev):
-    name = os.path.basename(rdir).replace('faatb_v4_', '')
+def eval_one(rdir, dev, trigger_version='v4'):
+    name = os.path.basename(rdir)
+    for pre in ('faatb_v5_', 'faatb_v4_'):
+        if name.startswith(pre):
+            name = name[len(pre):]
+            break
     ds = dataset_of(name)
     asr, ba = last20_asr_ba(rdir, name)
     if asr is None:
@@ -66,7 +70,7 @@ def eval_one(rdir, dev):
     parts = name.split('_')
     l2 = parts[parts.index('l2') + 1]
     sd = [p for p in parts if p.startswith('seed')][0].replace('seed', '')
-    save_trigger = 'resource/faat/v4/%s/l2_%s_seed%s' % (ds, l2, sd)
+    save_trigger = 'resource/faat/%s/%s/l2_%s_seed%s' % (trigger_version, ds, l2, sd)
     delta_global = os.path.join(save_trigger, 'global_delta.npy')
     sb_path = os.path.join(rdir, 'stageB_metrics.json')
     df_path = os.path.join(rdir, 'defenses.json')
@@ -102,12 +106,22 @@ def main():
     ap.add_argument('--out_csv', default='docs/v4_results.csv')
     ap.add_argument('--out_json', default='docs/v4_results.json')
     ap.add_argument('--only', default=None, help='substring filter on run name')
+    ap.add_argument('--pattern', default='faatb_v4_*',
+                    help="result-dir glob (e.g. 'faatb_v5_*' to eval the v5 wave)")
+    ap.add_argument('--trigger_version', default='v4',
+                    help="save_trigger version subdir (v4/v5) to locate global_delta.npy")
+    ap.add_argument('--log_dir', default='logs/v4',
+                    help="per-run scheduler log dir (logs/v4, logs/v5, ...)")
     args = ap.parse_args()
 
-    rdirs = sorted(glob.glob('results/faatb_v4_*'))
+    rdirs = sorted(glob.glob('results/' + args.pattern))
     recs = []
     for rdir in rdirs:
-        name = os.path.basename(rdir).replace('faatb_v4_', '')
+        name = os.path.basename(rdir)
+        for pre in ('faatb_v5_', 'faatb_v4_'):
+            if name.startswith(pre):
+                name = name[len(pre):]
+                break
         # --only forces re-eval of matching runs (delete cached metrics); aggregation
         # always includes ALL completed runs so the table accumulates correctly.
         if args.only and args.only in name:
@@ -116,7 +130,7 @@ def main():
                 if os.path.exists(p):
                     os.remove(p)
         log = os.path.join(rdir, 'output_1.log')
-        prank = os.path.join('logs', 'v4', name + '.log')
+        prank = os.path.join(args.log_dir, name + '.log')
         # a run is "done" if it reached ep>=299 in either log, OR model_last.pth exists
         last_ep = -1
         for lg in (log, prank):
@@ -132,7 +146,7 @@ def main():
             print('skip %s (ep%d, not done)' % (name, last_ep))
             continue
         print('eval %s' % name)
-        rec = eval_one(rdir, args.device)
+        rec = eval_one(rdir, args.device, args.trigger_version)
         if rec:
             recs.append(rec)
             print('   ASR=%.1f BA=%.1f L2=%s SSIM=%s AC=%s SS=%s STRIPtpr5=%s FP_ASR=%s'

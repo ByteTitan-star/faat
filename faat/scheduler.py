@@ -121,10 +121,50 @@ def reconcile(queue, state, log_dir):
 # --------------------------------------------------------------------------- #
 # Job construction
 # --------------------------------------------------------------------------- #
+def _build_baseline_command(s, gpu, log_dir):
+    """train_backdoor.py command for a plain baseline (badnets/blend/quantize/...).
+
+    No optimisation phase -- the trigger is built inside train_backdoor.py, so a
+    baseline run is faster than a FAAT run. Used for the GTSRB matched-stealth
+    comparison (the paper reports NO GTSRB baselines, so we run our own and compare
+    FAAT vs baseline at matched stealth -- the honest 'beat baseline' claim)."""
+    args = ' '.join([
+        '--dataset', str(s['dataset']),
+        '--data_dir', str(s.get('data_dir', './data')),
+        '--model', 'resnet18',
+        '--epochs', str(s.get('epochs', 300)),
+        '--learning_rate', '0.1',
+        '--seed', str(s.get('seed', 1)),
+        '--y_target', str(s.get('y_target', 0)),
+        '--poison_rate', str(s.get('poison_rate', 0.01)),
+        '--output_dir', str(s['output_dir']),
+        '--select_epoch', str(s.get('select_epoch', 10)),
+        '--selection', str(s.get('selection', 'res')),
+        '--res_sel', str(s.get('res_sel', 'square')),
+        '--backdoor_type', str(s['backdoor_type']),
+        '--num_classes', str(s.get('num_classes', 10)),
+        '--result_dir', str(s['result_dir']),
+    ])
+    if s['backdoor_type'] == 'badnets':
+        args += ' --type ' + str(s.get('type', '0:0:0'))
+    elif s['backdoor_type'] == 'blend':
+        args += ' --blend_size ' + str(s.get('blend_size', 32))
+    elif s['backdoor_type'] == 'quantize':
+        args += ' --num_levels ' + str(s.get('num_levels', '24:28:8'))
+    log_path = os.path.join(log_dir, s['name'] + '.log')
+    banner_start = '=== 当前实验组: %s (GPU%d) START %s ===' % (s['name'], gpu, _now())
+    banner_end = '=== 当前实验组: %s (GPU%d) END rc=$? %s ===' % (s['name'], gpu, _now())
+    cmd = ('echo "%s"; CUDA_VISIBLE_DEVICES=%d %s -u train_backdoor.py %s 2>&1; '
+           'rc=$?; echo "%s"; exit $rc') % (banner_start, gpu, PY, args, banner_end)
+    return cmd, log_path, s['name']
+
+
 def build_command(spec, gpu, log_dir):
     """Return (bash_command_string, log_path, label)."""
     s = spec
     label = s['name']
+    if s.get('kind') == 'baseline':
+        return _build_baseline_command(s, gpu, log_dir)
     args = ' '.join([
         '--dataset', str(s['dataset']),
         '--data_dir', str(s.get('data_dir', './data')),
