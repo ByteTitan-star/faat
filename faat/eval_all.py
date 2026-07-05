@@ -56,11 +56,7 @@ def data_dir_of(ds):
 
 
 def eval_one(rdir, dev, trigger_version='v4', log_dir='logs/v4'):
-    name = os.path.basename(rdir)
-    for pre in ('faatb_v5_', 'faatb_v4_'):
-        if name.startswith(pre):
-            name = name[len(pre):]
-            break
+    name = re.sub(r'^faatb_v\d+[a-z]?_', '', os.path.basename(rdir))
     ds = dataset_of(name)
     asr, ba = last20_asr_ba(rdir, name, log_dir)
     if asr is None:
@@ -132,11 +128,7 @@ def main():
     rdirs = sorted(glob.glob('results/' + args.pattern))
     recs = []
     for rdir in rdirs:
-        name = os.path.basename(rdir)
-        for pre in ('faatb_v5_', 'faatb_v4_'):
-            if name.startswith(pre):
-                name = name[len(pre):]
-                break
+        name = re.sub(r'^faatb_v\d+[a-z]?_', '', os.path.basename(rdir))
         # --only forces re-eval of matching runs (delete cached metrics); aggregation
         # always includes ALL completed runs so the table accumulates correctly.
         if args.only and args.only in name:
