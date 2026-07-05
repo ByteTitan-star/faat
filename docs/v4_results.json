@@ -150,6 +150,36 @@
     "FP_ASR@0.9": 76.5
   },
   {
+    "run": "gtsrb_l2_2.5_seed2",
+    "dataset": "gtsrb",
+    "L2": "2.5",
+    "seed": "2",
+    "ASR": 63.16,
+    "BA": 99.92,
+    "L2_meas": 2.448,
+    "SSIM": 0.8053,
+    "DCT": 0.0265,
+    "AC_AUC": 0.662,
+    "SS_AUC": 0.795,
+    "STRIP_TPR5": 0.208,
+    "FP_ASR@0.9": 67.3
+  },
+  {
+    "run": "gtsrb_l2_2.5_seed3",
+    "dataset": "gtsrb",
+    "L2": "2.5",
+    "seed": "3",
+    "ASR": 61.06,
+    "BA": 99.95,
+    "L2_meas": 2.444,
+    "SSIM": 0.8072,
+    "DCT": 0.0268,
+    "AC_AUC": 0.747,
+    "SS_AUC": 0.725,
+    "STRIP_TPR5": 0.206,
+    "FP_ASR@0.9": 64.1
+  },
+  {
     "run": "gtsrb_l2_3.0_seed1",
     "dataset": "gtsrb",
     "L2": "3.0",
@@ -165,6 +195,36 @@
     "FP_ASR@0.9": 76.5
   },
   {
+    "run": "gtsrb_l2_3.0_seed2",
+    "dataset": "gtsrb",
+    "L2": "3.0",
+    "seed": "2",
+    "ASR": 73.93,
+    "BA": 99.91,
+    "L2_meas": 2.922,
+    "SSIM": 0.7614,
+    "DCT": 0.032,
+    "AC_AUC": 0.735,
+    "SS_AUC": 0.756,
+    "STRIP_TPR5": 0.4,
+    "FP_ASR@0.9": 77.6
+  },
+  {
+    "run": "gtsrb_l2_3.0_seed3",
+    "dataset": "gtsrb",
+    "L2": "3.0",
+    "seed": "3",
+    "ASR": 69.89,
+    "BA": 99.92,
+    "L2_meas": 2.919,
+    "SSIM": 0.7612,
+    "DCT": 0.0319,
+    "AC_AUC": 0.7,
+    "SS_AUC": 0.716,
+    "STRIP_TPR5": 0.142,
+    "FP_ASR@0.9": 71.8
+  },
+  {
     "run": "gtsrb_l2_3.5_seed1",
     "dataset": "gtsrb",
     "L2": "3.5",
@@ -178,5 +238,35 @@
     "SS_AUC": 0.737,
     "STRIP_TPR5": 0.464,
     "FP_ASR@0.9": 93.4
+  },
+  {
+    "run": "gtsrb_l2_3.5_seed2",
+    "dataset": "gtsrb",
+    "L2": "3.5",
+    "seed": "2",
+    "ASR": 79.66,
+    "BA": 99.82,
+    "L2_meas": 3.389,
+    "SSIM": 0.7172,
+    "DCT": 0.0375,
+    "AC_AUC": 0.795,
+    "SS_AUC": 0.726,
+    "STRIP_TPR5": 0.36,
+    "FP_ASR@0.9": 82.8
+  },
+  {
+    "run": "gtsrb_l2_3.5_seed3",
+    "dataset": "gtsrb",
+    "L2": "3.5",
+    "seed": "3",
+    "ASR": 82.36,
+    "BA": 99.83,
+    "L2_meas": 3.395,
+    "SSIM": 0.718,
+    "DCT": 0.0387,
+    "AC_AUC": 0.759,
+    "SS_AUC": 0.748,
+    "STRIP_TPR5": 0.292,
+    "FP_ASR@0.9": 86.4
   }
 ]
