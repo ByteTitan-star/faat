@@ -91,8 +91,17 @@ def eval_one(rdir, dev, trigger_version='v4', log_dir='logs/v4'):
                         '--data_dir', data_dir_of(ds), '--model_dir', rdir,
                         '--delta_global', delta_global, '--y_target', '0'],
                        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    sb = json.load(open(os.path.join(rdir, 'stageB_metrics.json')))
-    df = json.load(open(os.path.join(rdir, 'defenses.json')))
+    # robust load: a stage_b/defenses subprocess can fail under GPU contention
+    # (sharing a card with concurrent training) -> record ASR/BA with stealth=None
+    # rather than crashing the whole aggregation. Re-run later to fill the gaps.
+    try:
+        sb = json.load(open(os.path.join(rdir, 'stageB_metrics.json')))
+    except Exception:
+        sb = {}
+    try:
+        df = json.load(open(os.path.join(rdir, 'defenses.json')))
+    except Exception:
+        df = {}
     # defense-post ASR (FP) at prune=0.9 (most aggressive) -- ASR should stay high
     fp_asr = df['FinePruning'][-1]['ASR'] if df.get('FinePruning') else None
     rec = {

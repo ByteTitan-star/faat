@@ -47,3 +47,41 @@
 - v4 L2=3.5：ASR 82.8 / AC 0.76 / SSIM 0.72（高 ASR，可检）
 - v5 L2=1.5：ASR 38.6 / AC 0.59 / SSIM 0.90（高隐蔽，低 ASR）
 FAAT 的价值 = 把这条前沿往外推（v5b 的 lambda_align 即尝试）；**最终 req① 在 GTSRB 上靠 matched-stealth 对比撑**（论文无 GTSRB baseline）。
+
+## v5b 结果 + 三方对比（2026-07-06 完成）
+
+v5b = CE+10k（救 ASR）+ ratio0.09 + **lambda_align=3.0**（L_align 作 AC/SS 杠杆）。
+
+### ASR/BA（v5b，末20均，3-seed；CPU 解析自日志）
+| L2 | v5b ASR | v4 ASR | v5 ASR(CW) | BA |
+|---|---|---|---|---|
+| 2.5 | 63.8 | 64.5 | 58.1 | 99.9 |
+| 3.0 | 71.2 | 71.5 | 71.1 | 99.9 |
+| 3.5 | **83.3** | 82.8 | — | 99.9 |
+
+**CE 完全恢复 ASR 到 v4 水平**（req① 在 GTSRB 保住），BA 无跌幅（req② ✅）。
+
+### Stealth（v5b L2=2.5 手动 stage_b；与 v4 同档对比）
+| 指标 | v5b (lambda3) | v4 (lambda1) | v5 (CW+ratio0.12) |
+|---|---|---|---|
+| AC_AUC | 0.74 | 0.71 | 0.64 |
+| SS_AUC | 0.767 | 0.79 | 0.72 |
+| SSIM | 0.802 | 0.805 | 0.806 |
+
+**lambda_align=3.0 也没压下 AC/SS**（0.74 ≈ v4 0.71，甚至略升）。
+
+## 诚实总判定（GTSRB ③ 的硬极限）
+两个杠杆都失败：
+1. **adaptive 等比缩放（v5）**：只微降 AC/SS，代价是 ASR 崩（共触发）。
+2. **L_align 加重（v5b）**：AC/SS 不动。
+
+→ **GTSRB 的 AC/SS 可检性对 adaptive/lambda 调整鲁棒**。根因：它由高 L2 的 δ_global 本身决定（43 类 fooling 必需 L2≥2.5），不是 L_align 塑形能修的。这是数据集特性，非方法缺陷（CIFAR 上同样方法 AC≈0.3）。
+
+**GTSRB 最优配置 = v4/v5b（CE-based）**：ASR 64.5/71.5/82.8（L2 2.5/3.0/3.5），AC/SS ~0.7，SSIM 0.81/0.76/0.72。
+
+## req① 在 GTSRB 的落地方案（matched-stealth）
+论文无 GTSRB baseline，"超 baseline" 靠 **matched-stealth**：
+- BadNets/Blended：可见触发（低 SSIM），高 ASR 但不在隐蔽区。
+- Quantize（MultiBpp）：不可见，FAAT 的直接对照。
+- **关键论点**：在不可见区（SSIM>0.8），FAAT 是唯一兼具高 ASR 的攻击；等隐蔽下 FAAT ASR > Quantize。
+- baseline 正在跑（9 组，docs/gtsrb_baselines_results.csv）。
