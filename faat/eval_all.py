@@ -21,12 +21,12 @@ import subprocess
 PY = '/media/hd1/wangxin/work7-7month/.conda-envs/GeneralComponents/bin/python'
 
 
-def last20_asr_ba(rdir, name=None):
+def last20_asr_ba(rdir, name=None, log_dir='logs/v4'):
     """Parse last-20 ASR/BA. Prefer results/.../output_1.log; fall back to the
-    scheduler per-run log (logs/v4/<name>.log) which captures the same stdout."""
+    scheduler per-run log (logs/<log_dir>/<name>.log) which captures the same stdout."""
     cands = [os.path.join(rdir, 'output_1.log')]
     if name:
-        cands.append(os.path.join('logs', 'v4', name + '.log'))
+        cands.append(os.path.join(log_dir, name + '.log'))
     rows = []
     for log in cands:
         if not os.path.exists(log):
@@ -55,21 +55,27 @@ def data_dir_of(ds):
     return 'data/GTSRB32' if ds == 'gtsrb' else './data'
 
 
-def eval_one(rdir, dev, trigger_version='v4'):
+def eval_one(rdir, dev, trigger_version='v4', log_dir='logs/v4'):
     name = os.path.basename(rdir)
     for pre in ('faatb_v5_', 'faatb_v4_'):
         if name.startswith(pre):
             name = name[len(pre):]
             break
     ds = dataset_of(name)
-    asr, ba = last20_asr_ba(rdir, name)
+    asr, ba = last20_asr_ba(rdir, name, log_dir)
     if asr is None:
         return None
     # reconstruct save_trigger path from run name "<ds>_l2_<l2>_seed<sd>"
     # (split on '_' -> ['<ds>','l2','<l2>','seed<sd>']; 'seed<sd>' is one token)
     parts = name.split('_')
+    if 'l2' not in parts:
+        print('  skip %s (not an l2_sweep run, e.g. smoke/baseline)' % name)
+        return None
     l2 = parts[parts.index('l2') + 1]
-    sd = [p for p in parts if p.startswith('seed')][0].replace('seed', '')
+    sd_tok = [p for p in parts if p.startswith('seed')]
+    if not sd_tok:
+        return None
+    sd = sd_tok[0].replace('seed', '')
     save_trigger = 'resource/faat/%s/%s/l2_%s_seed%s' % (trigger_version, ds, l2, sd)
     delta_global = os.path.join(save_trigger, 'global_delta.npy')
     sb_path = os.path.join(rdir, 'stageB_metrics.json')
@@ -146,7 +152,7 @@ def main():
             print('skip %s (ep%d, not done)' % (name, last_ep))
             continue
         print('eval %s' % name)
-        rec = eval_one(rdir, args.device, args.trigger_version)
+        rec = eval_one(rdir, args.device, args.trigger_version, args.log_dir)
         if rec:
             recs.append(rec)
             print('   ASR=%.1f BA=%.1f L2=%s SSIM=%s AC=%s SS=%s STRIPtpr5=%s FP_ASR=%s'
