@@ -243,7 +243,7 @@ results/
 `utils.py` 的 `Add_Clean_Label_Train_Trigger`（train，行 303）与 `Add_Test_Trigger`（test，行 187）里，blend 的 `checkboard` 原本被**硬编码为 `[2,1,3]`**，即透明度恒为 (0.2, 0.1, 0.3)，`--type` 参数被忽略。
 - 论文 Table 1 的 Blended-C 默认透明度是 **0.2:0.2:0.2**（Component A 实验，香草触发器）；(0.2,0.1,0.3) 是 Component-C 优化版（Table 4）。
 - **已按方案(b)补丁**（2026-07-01）：把上述两处 `[2,1,3]` 改为 `[2,2,2]`（NAR 的行 424 未动）。补丁可逆、行内有注释标注。故 Blended-C 列现按 0.2:0.2:0.2 复现，与论文 Table 1 一致。
-- Blended-C 全 8 组已由 `run_table1.sh` 开跑（`--backdoor_type blend`，透明度由补丁后硬编码决定，`--type 2:2:2` 仅占位记录意图）。
+- Blended-C 全 8 组已由 `scripts/run_table1.sh` 开跑（`--backdoor_type blend`，透明度由补丁后硬编码决定，`--type 2:2:2` 仅占位记录意图）。
 
 ---
 
@@ -260,7 +260,7 @@ python train_backdoor.py --backdoor_type quantize --num_levels 24:28:8 --selecti
 # Forget / Loss / Gradient / Random：--selection forget / loss / grad / random（去掉 --res_sel）
 ```
 
-**待跑三列**（Table 1 剩余 24 组），选择策略同上 8 个。**实际执行用 `run_table1.sh` 后台调度**，下面仅列命令：
+**待跑三列**（Table 1 剩余 24 组），选择策略同上 8 个。**实际执行用 `scripts/run_table1.sh` 后台调度**，下面仅列命令：
 ```bash
 # Badnets-C 列（代码硬编码黑白棋盘，--type 仅占位）
 python train_backdoor.py --backdoor_type badnets --type 0:0:0 --selection <sel> [--res_sel <x>] --result_dir results/badnets_<sel>

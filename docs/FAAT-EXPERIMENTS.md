@@ -1,7 +1,7 @@
 # FAAT-EXPERIMENTS.md — FAAT 实验单一真相源
 
 > 对应计划 `docs/plans.md`。与 Table 1 复现真相源 `result_all.md` 分离：**faat_* 结果只进本文件，不进 result_all.md**。
-> 调度器：`run_faat_stageA.sh`（GPU 礼让：等 `run_table1.sh` 结束后开跑）。日志：`results/_run_faat_stageA.log`。
+> 调度器：`scripts/run_faat_stageA.sh`（GPU 礼让：等 `scripts/run_table1.sh` 结束后开跑）。日志：`results/_run_faat_stageA.log`。
 
 ## 统一配置（与 Table 1 对齐，保证可比）
 `--dataset cifar10 --model resnet18 --epochs 300 --learning_rate 0.1 --seed 1 --y_target 0 --poison_rate 0.01 --output_dir ./resource/save_metric_10_res --select_epoch 10 --selection res --res_sel square --backdoor_type faat`
