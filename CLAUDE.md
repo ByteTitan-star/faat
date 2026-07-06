@@ -3,7 +3,7 @@
 > ## ✅ Table 1 复现完成 32/32（2026-07-01 21:04 全部跑满 epoch=299）—— 已暂停，等 FAAT agent 改完代码
 > 全 32 组完成，调度器已自动 `parse_detail.py --write-md` 生成 §3.1（32 行）。**代码完整性已核**：`utils.py`(blend 逻辑+`get_stats`)/`cifar_resnet.py`(网络) 全程未动，`train_backdoor.py` 仅被 FAAT 加了 `faatb` 分支（纯加法，blend 路径 `diff` 无变化），故 32 组结果**有效、未被污染**。
 > **现在暂停**：等 FAAT agent 改完代码、结果稳定后，再决定是否重新复现/跑后续表（CIFAR-100/消融/防御，见 `docs/result_all.md` §1）。恢复前若担心污染可抽查 1 组重跑比对。
-> **不要重启 `run_table1.sh`、不要从头重跑 32 组**：已完成且有效。完整状态见 `docs/result_all.md`。
+> **不要重启 `scripts/run_table1.sh`、不要从头重跑 32 组**：已完成且有效。完整状态见 `docs/result_all.md`。
 
 本文件给 Claude Code 的**持久化工作指南**。开始任何复现/训练任务前先读这里。
 
@@ -92,12 +92,12 @@ results/_run_table1.log                                 # 批量调度器日志
 2. **Res-eˣ 曾除零崩溃**：`get_stats` 的 exp 分支下溢，已做数值稳定修补（`utils.py`，softmax 减最小值，数学等价），不改算法。
 3. **Blended-C 已补丁**：utils.py 行187/303 的 blend `checkboard` 由 `[2,1,3]` 改为 `[2,2,2]`（0.2:0.2:0.2，匹配论文 Table1 默认）；NAR 的行424 未动。可逆，行内有注释。
 4. 弱基线（Random/Loss/Gradient）单种子 ASR 易偏高（+9~+31），论文疑多种子平均；不影响"本文方法有效"结论。
-5. **run_table1.sh 已修复的坑**（重启前勿改回）：`is_done` 用 `grep` 全局找 epoch-299（非 `tail -n 1`，否则被 append 的残尾误判）；`--selection grad`（非 `gradient`，否则 argparse 报错）；JOBS 循环前 `grep -v '^[[:space:]]*#'` 过滤注释行；用 PID 文件而非 flock（子进程会继承 flock fd 导致锁不释放）。kill 调度器要杀实际 `bash run_table1.sh`（PID 见 `results/_run_table1.pid`），杀 nohup wrapper 无效。
-6. **▶️ 复现收尾中（2026-07-01 17:21 起）—— 与 FAAT agent 并行但隔离**：本目录正被另一个 agent 改造成 FAAT 新方法（新增 `faat/`、`metrics/`、`run_faat_stageA.sh`，在 `train_backdoor.py` 加了 `faat` 分支/参数/训练后存档）。已完成 28 组有效（FAAT 改动经核对是纯加法，未碰 baseline 路径，网络 `cifar_resnet.py` 未动）。**用户 2026-07-01 授权恢复剩 4 组 blend**，前提是"不影响改进代码、不影响复现"，已落实：① 只用 GPU1、`EXCLUDE_GPU=2` 跳过 FAAT 的 GPU2（无 GPU/进程/文件冲突）；② 启动前代码快照存 `/tmp/repro_code_snapshot_before_blend.txt`，blend 路径 intact；③ `results/faat_*` 被 parse_detail 自动跳过。**跑完后继续暂停**等 FAAT agent 改完代码再决定是否重新复现/跑后续表。仍要注意：另一个 agent 可能随时改 `utils.py`/训练循环——已在跑的 blend 进程靠 import 隔离不受影响，但**不要在它改代码的瞬间新启 baseline 进程**。
+5. **scripts/run_table1.sh 已修复的坑**（重启前勿改回）：`is_done` 用 `grep` 全局找 epoch-299（非 `tail -n 1`，否则被 append 的残尾误判）；`--selection grad`（非 `gradient`，否则 argparse 报错）；JOBS 循环前 `grep -v '^[[:space:]]*#'` 过滤注释行；用 PID 文件而非 flock（子进程会继承 flock fd 导致锁不释放）。kill 调度器要杀实际 `bash scripts/run_table1.sh`（PID 见 `results/_run_table1.pid`），杀 nohup wrapper 无效。
+6. **▶️ 复现收尾中（2026-07-01 17:21 起）—— 与 FAAT agent 并行但隔离**：本目录正被另一个 agent 改造成 FAAT 新方法（新增 `faat/`、`metrics/`、`scripts/run_faat_stageA.sh`，在 `train_backdoor.py` 加了 `faat` 分支/参数/训练后存档）。已完成 28 组有效（FAAT 改动经核对是纯加法，未碰 baseline 路径，网络 `cifar_resnet.py` 未动）。**用户 2026-07-01 授权恢复剩 4 组 blend**，前提是"不影响改进代码、不影响复现"，已落实：① 只用 GPU1、`EXCLUDE_GPU=2` 跳过 FAAT 的 GPU2（无 GPU/进程/文件冲突）；② 启动前代码快照存 `/tmp/repro_code_snapshot_before_blend.txt`，blend 路径 intact；③ `results/faat_*` 被 parse_detail 自动跳过。**跑完后继续暂停**等 FAAT agent 改完代码再决定是否重新复现/跑后续表。仍要注意：另一个 agent 可能随时改 `utils.py`/训练循环——已在跑的 blend 进程靠 import 隔离不受影响，但**不要在它改代码的瞬间新启 baseline 进程**。
 
 ## 批量执行
 
-- `run_table1.sh`：后台调度 Table 1 全 4 列（验证组 Res-x²+Forget 优先），自动让 GPU(空闲≥8GB)、跳过已完成/运行中、全部跑完自动 `parse_detail.py --write-md`。已含 Blended-C。**已加可选 `EXCLUDE_GPU` 黑名单**（默认空=原行为）：`EXCLUDE_GPU=2 nohup bash run_table1.sh >/dev/null 2>&1 &` 可跳过指定卡。看进度 `tail -f results/_run_table1.log`。**✅ 2026-07-01 21:04 已跑完 32/32（4 列全完成，调度器正常退出，自动写 §3.1）。现已停——后续若跑 CIFAR-100/消融/防御需另起脚本。**
+- `scripts/run_table1.sh`：后台调度 Table 1 全 4 列（验证组 Res-x²+Forget 优先），自动让 GPU(空闲≥8GB)、跳过已完成/运行中、全部跑完自动 `parse_detail.py --write-md`。已含 Blended-C。**已加可选 `EXCLUDE_GPU` 黑名单**（默认空=原行为）：`EXCLUDE_GPU=2 nohup bash scripts/run_table1.sh >/dev/null 2>&1 &` 可跳过指定卡。看进度 `tail -f results/_run_table1.log`。**✅ 2026-07-01 21:04 已跑完 32/32（4 列全完成，调度器正常退出，自动写 §3.1）。现已停——后续若跑 CIFAR-100/消融/防御需另起脚本。**
 - 单组手动示例：`CUDA_VISIBLE_DEVICES=2 python -u train_backdoor.py <统一参数> --backdoor_type badnets --type 0:0:0 --selection res --res_sel square --result_dir results/badnets_res_square`
 
 ## 解析脚本

@@ -1,21 +1,21 @@
 # FAAT 研究计划（Feature-Aligned Adaptive Trigger）
 
 > 权威计划文件。conda 环境 `.conda-envs/GeneralComponents`（python3.8 + torch1.11.0+cu113）；工作目录 `GeneralComponents-main/`。
-> 关联：源设想 `docs/development.md`；**baseline 单一真相源 `docs/result_all.md`**；复现调度 `run_table1.sh`；Phase 0 结论 `docs/PHASE0-REPORT.md`；Week 9 门控 `docs/GATE-CIFAR10.md`。
+> 关联：源设想 `docs/development.md`；**baseline 单一真相源 `docs/result_all.md`**；复现调度 `scripts/run_table1.sh`；Phase 0 结论 `docs/PHASE0-REPORT.md`；Week 9 门控 `docs/GATE-CIFAR10.md`。
 
 ---
 
 ## 执行现状对齐（2026-07-01，动手前必读）
 
-- **baseline 复现管线已存在且在跑**：`docs/result_all.md` 是 baseline 的**单一真相源**；`run_table1.sh` 正后台复现论文 Table 1（CIFAR-10, 1%, 8 选择 × 4 攻击 = 32 组）。进度（2026-07-01）：MultiBpp-RGB(`quantize 24:28:8`) 8/8 ✅；**Badnets-C 7/8、MultiBpp-B(`quantize 255:255:8`) 7/8 🔄**；**Blended-C 🔄 0/8 跑中**（用户已补丁 `utils.py` 行187/303 的 blend `checkboard` 由 `[2,1,3]`=0.2:0.1:0.3 改为 `[2,2,2]`=0.2:0.2:0.2，匹配论文 Table1 默认；NAR 行424 未动）。
-- **Phase 0 baseline 与复现管线对齐，不另起炉灶**：BadNets / MultiBpp-RGB / MultiBpp-B / Blended 由 `run_table1.sh` 产出（见 §3.1）。**SIBA / Narcissus / FTROJAN-style 为额外 baseline**（论文外、FAAT 计划需要的对照，尤其 SIBA 是头号对照），GPU 空闲后补跑。
+- **baseline 复现管线已存在且在跑**：`docs/result_all.md` 是 baseline 的**单一真相源**；`scripts/run_table1.sh` 正后台复现论文 Table 1（CIFAR-10, 1%, 8 选择 × 4 攻击 = 32 组）。进度（2026-07-01）：MultiBpp-RGB(`quantize 24:28:8`) 8/8 ✅；**Badnets-C 7/8、MultiBpp-B(`quantize 255:255:8`) 7/8 🔄**；**Blended-C 🔄 0/8 跑中**（用户已补丁 `utils.py` 行187/303 的 blend `checkboard` 由 `[2,1,3]`=0.2:0.1:0.3 改为 `[2,2,2]`=0.2:0.2:0.2，匹配论文 Table1 默认；NAR 行424 未动）。
+- **Phase 0 baseline 与复现管线对齐，不另起炉灶**：BadNets / MultiBpp-RGB / MultiBpp-B / Blended 由 `scripts/run_table1.sh` 产出（见 §3.1）。**SIBA / Narcissus / FTROJAN-style 为额外 baseline**（论文外、FAAT 计划需要的对照，尤其 SIBA 是头号对照），GPU 空闲后补跑。
 - **数据集顺序门控（用户硬约束）**：第一阶段**仅 CIFAR-10**；仅当 CIFAR-10 上 FAAT 综合超 baseline 后，才依次扩 GTSRB → Tiny-ImageNet → CIFAR-100。
 - **已完成基建（2026-07-01）**：
-  - `train_backdoor.py` 末轮存 `model_last.pth`(≈44MB) + `args.json` + `poison_inds.json`（additive，try/except 包裹，**不动 ASR/BA 日志列**，`parse_detail.py`/`run_table1.sh` 不受影响；其后续启动的 run 会自动产出 checkpoint）。
+  - `train_backdoor.py` 末轮存 `model_last.pth`(≈44MB) + `args.json` + `poison_inds.json`（additive，try/except 包裹，**不动 ASR/BA 日志列**，`parse_detail.py`/`scripts/run_table1.sh` 不受影响；其后续启动的 run 会自动产出 checkpoint）。
   - 新建 `metrics/`：`stealth.py`(SSIM/L2/Linf/DCT-L1，零依赖) + `detection.py`(AC/SS + 手写 ROC AUC + TPR@1%FPR，纯 numpy) + `smoke_test.py`。2-epoch 烟测通过（`results/phase0_smoke_quantize/`，junk，可删）。
 - **Stage A 规则版 FAAT（proxy-free）已实现并 CPU 验证**：`faat/{image_stats,rules,apply_trigger}.py` + 接入 `train_backdoor.py`（`--backdoor_type faat`、`--faat_global_scale`、`--faat_eps`）。`δ_global`=Narcissus noise（测试触发器，C2），`δ_adaptive`=基于纹理的 DCT 低中频噪声（训练专用）。CPU 自测 + wiring check（MyDataset→DataLoader→ResNet18 前向）通过。**实测发现**：① Narcissus noise 全量 L2=6.6/absmax=0.125/SSIM=0.933（**不隐蔽**——stealth 需调小 `--faat_global_scale` 或 Stage B 重优化 δ_global 预算）；② 真实 CIFAR-10 纹理(Laplacian var)中位数 0.066，已据此校准 sigmoid（thr=0.066, slope=0.041；原 0.02 在真实图上饱和到 t≈0.99）；③ 95% 谱能在 band 0，故 `_BASE_BANDS` 避开 band 0、取低中频 1–2；④ δ_global 主导（adaptive eps 0.01–0.04 ≪ 6.6）→ H3 对比须用「**等总 L2 预算**下 global-only vs global+adaptive」设计，否则 adaptive 被淹没。**待 GPU**：≥50-epoch 真实训练验证 ASR>Random（2-epoch 不足以验证 clean-label ASR，见 result_all.md 收敛 epoch 13–19）。
 - **已知代码错配**：SIBA 代码读 `./resource/save_trigger_10_0/`（`utils.py:248`），实际触发器在 `./resource/siba/save_trigger_10_0/{uap,mask}.npy`。跑 SIBA 前需 `ln -s` 或给 `train_backdoor.py` 加 `--save_trigger` 覆盖。
-- **GPU 规则（CLAUDE.md）**：4×3090 与他人共享；只用空闲显存≥4GB 的卡，**不抢占他人正用的卡**。当前 4 卡被 `run_table1.sh` 占满 → 暂停启动训练，先做不需 GPU 的代码工作（Stage A 规则版 FAAT）。
+- **GPU 规则（CLAUDE.md）**：4×3090 与他人共享；只用空闲显存≥4GB 的卡，**不抢占他人正用的卡**。当前 4 卡被 `scripts/run_table1.sh` 占满 → 暂停启动训练，先做不需 GPU 的代码工作（Stage A 规则版 FAAT）。
 - **命名约定**：遵循 `result_all.md` —— `results/<attack>_<selection>[_<res_sel>]/output_<seed>.log`。
 
 ---
@@ -79,7 +79,7 @@
 
 ## 二、最小验证实验设计（Phase 0，必须最先做）
 
-> 原则：**先用已有代码、在 CIFAR-10 上、用最小代价证伪/证实核心假设**，再决定是否进入 FAAT 实现。Phase 0 几乎不写新攻击代码，只复用现有 5 种攻击 + 加 2 个轻量防御 + 加几个度量。**注意：BadNets/Blend/Quantize 的复现由 `run_table1.sh` 承担（见 §3.1），Phase 0 在其产出的 checkpoint 上算隐蔽/检测度量即可。**
+> 原则：**先用已有代码、在 CIFAR-10 上、用最小代价证伪/证实核心假设**，再决定是否进入 FAAT 实现。Phase 0 几乎不写新攻击代码，只复用现有 5 种攻击 + 加 2 个轻量防御 + 加几个度量。**注意：BadNets/Blend/Quantize 的复现由 `scripts/run_table1.sh` 承担（见 §3.1），Phase 0 在其产出的 checkpoint 上算隐蔽/检测度量即可。**
 
 ### 2.1 验证哪些假设（每个都可证伪）
 | 假设 | 陈述 | 证伪则 |
@@ -98,9 +98,9 @@
 ### 2.3 Baseline（复现管线 + 额外）
 | Baseline | 来源 / 代码 | 角色 / 证明的痛点 |
 |---|---|---|
-| BadNets（固定 patch） | `run_table1.sh`（Badnets-C，`--type 0:0:0`） | 全局静态 RGB 触发器，H0 的代表 |
-| Blended | `run_table1.sh`（Blended-C，**待透明度定夺**） | 全局静态混合触发器 |
-| MultiBpp-RGB / MultiBpp-B | `run_table1.sh`（`quantize 24:28:8` 已完成 / `255:255:8` 训练中） | 干净标签自适应（前身），FAAT 要超越 |
+| BadNets（固定 patch） | `scripts/run_table1.sh`（Badnets-C，`--type 0:0:0`） | 全局静态 RGB 触发器，H0 的代表 |
+| Blended | `scripts/run_table1.sh`（Blended-C，**待透明度定夺**） | 全局静态混合触发器 |
+| MultiBpp-RGB / MultiBpp-B | `scripts/run_table1.sh`（`quantize 24:28:8` 已完成 / `255:255:8` 训练中） | 干净标签自适应（前身），FAAT 要超越 |
 | SIBA（样本特定） | 额外（`--backdoor_type siba`，**需修路径**） | **关键对照**：样本特定但**不特征对齐** |
 | Narcissus | 额外（`--backdoor_type narcissus`） | 逐样本优化的干净标签 |
 | FTROJAN-style（频域） | 额外（小新代码：`dct_2d` 低频正弦扰动 <50 行） | 频域 baseline，回应「频域首创权」 |
@@ -128,9 +128,9 @@
 
 ## 三、Baseline 复现路线
 
-### 3.1 复现顺序（与 `run_table1.sh` 对齐，不一次铺开）
+### 3.1 复现顺序（与 `scripts/run_table1.sh` 对齐，不一次铺开）
 - **第 0 批（已完成）**：MultiBpp-RGB(Quantize) × 8 选择策略（CIFAR-10 @1%）。✅ 见 `docs/result_all.md` §3。
-- **第 1 批（`run_table1.sh` 进行中）**：Badnets-C、MultiBpp-B × 8 选择策略；Blended-C 暂缓（透明度定夺）。**由复现管线承担，不重复跑。**
+- **第 1 批（`scripts/run_table1.sh` 进行中）**：Badnets-C、MultiBpp-B × 8 选择策略；Blended-C 暂缓（透明度定夺）。**由复现管线承担，不重复跑。**
 - **第 2 批（FAAT 出结果后，GPU 空闲）**：FTROJAN-style 频域 baseline；SIBA（修路径）、Narcissus；+ Input-Aware / WaNet（若时间允许，作强对照）。
 - **可放弃**：Random/Loss/Gradient 等弱选择策略（复现记录已显示其高方差），主表只保留 Res-x²（强）+ Forget（SOTA 选择）+ Random（下界）。
 
@@ -342,11 +342,11 @@ FAAT(Stage B) vs {BadNets, Blended, MultiBpp-RGB/B, SIBA, Narcissus, FTROJAN-sty
 ## 十、阶段计划与时间安排（标准论文版，10–12 周，CIFAR-10 为主锚）
 
 > 门控：Week 1–8 全在 CIFAR-10；Week 9 的「超 baseline」判定通过后，Week 10–12 才启动跨数据集（且按序）。每周给出【本周目标/实验/产出/进入下周的标准/失败调整】。
-> 现实约束：4 GPU 与他人共享；baseline 复现由 `run_table1.sh` 承担，FAAT 专项训练排在其间隙/空闲卡上。
+> 现实约束：4 GPU 与他人共享；baseline 复现由 `scripts/run_table1.sh` 承担，FAAT 专项训练排在其间隙/空闲卡上。
 
 **Week 1 — Phase 0 基建 + 度量补齐【必做，部分已完成】**
 - 目标：复现管线产出 baseline + 补 SSIM/DCT-L1/AC/SS 度量 + 增加模型 checkpoint 保存。
-- 实验：`run_table1.sh` 跑 Badnets-C/MultiBpp-B（+ Blended-C 定夺后）；写可微 SSIM、DCT-L1、AC、SS（✅ 已写）；`train_backdoor.py` 末轮存权重（✅ 已加）。
+- 实验：`scripts/run_table1.sh` 跑 Badnets-C/MultiBpp-B（+ Blended-C 定夺后）；写可微 SSIM、DCT-L1、AC、SS（✅ 已写）；`train_backdoor.py` 末轮存权重（✅ 已加）。
 - 产出：`results/<attack>_<sel>/` × {ASR,BA,L2,SSIM,GMSD,DCT-L1,AC,SS} 表；强度梯度 Pareto 图。
 - 进下周：baseline 跑通 + 4 度量可复现 + checkpoint 可加载。
 - 失败调整：度量大错 → 先用 GMSD（已有）兜底，SSIM/AC/SS 排查。
