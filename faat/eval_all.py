@@ -48,11 +48,15 @@ def last20_asr_ba(rdir, name=None, log_dir='logs/v4'):
 
 
 def dataset_of(name):
-    return 'gtsrb' if name.startswith('gtsrb') else 'cifar10'
+    if name.startswith('gtsrb'):
+        return 'gtsrb'
+    if name.startswith('cifar100'):
+        return 'cifar100'
+    return 'cifar10'
 
 
 def data_dir_of(ds):
-    return 'data/GTSRB32' if ds == 'gtsrb' else './data'
+    return {'gtsrb': 'data/GTSRB32', 'cifar100': './data100'}.get(ds, './data')
 
 
 def eval_one(rdir, dev, trigger_version='v4', log_dir='logs/v4'):
