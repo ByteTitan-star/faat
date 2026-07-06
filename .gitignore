@@ -18,3 +18,4 @@ results/
 logs/
 *.log
 data100/
+tmp/
