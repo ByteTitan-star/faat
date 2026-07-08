@@ -1,0 +1,17 @@
+[
+  {
+    "run": "ablation_cifar10_l2_1.5_seed1_noalign",
+    "dataset": "cifar10",
+    "L2": "1.5",
+    "seed": "1",
+    "ASR": 96.37,
+    "BA": 94.66,
+    "L2_meas": 1.49,
+    "SSIM": 0.95,
+    "DCT": 0.0168,
+    "AC_AUC": 0.251,
+    "SS_AUC": 0.374,
+    "STRIP_TPR5": 0.046,
+    "FP_ASR@0.9": 89.8
+  }
+]
