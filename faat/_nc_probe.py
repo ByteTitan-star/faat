@@ -13,6 +13,12 @@ attack headroom (design a trigger that evades NC). If not, the space is saturate
 import sys
 import numpy as np
 import torch
+
+# cuDNN conv ops are non-deterministic by default -> NC anomaly swings run-to-run on the
+# SAME model (observed: target anomaly 4.94 then 1.12). Force determinism so a model's NC
+# score is reproducible (otherwise single-run "caught/evaded" is noise).
+torch.backends.cudnn.deterministic = True
+torch.backends.cudnn.benchmark = False
 import torch.nn.functional as F
 from torchvision import datasets, transforms
 from cifar_resnet import ResNet18
