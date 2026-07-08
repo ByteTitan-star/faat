@@ -1,0 +1,24 @@
+dataset,attack,transformation,strength,metric,value
+CIFAR10,Ours (FAAT),jpeg,10,ASR,82.5
+CIFAR10,Ours (FAAT),jpeg,30,ASR,91.2
+CIFAR10,Ours (FAAT),jpeg,50,ASR,94.5
+CIFAR10,Ours (FAAT),jpeg,70,ASR,97.1
+CIFAR10,Ours (FAAT),jpeg,90,ASR,98.3
+CIFAR10,Ours (FAAT),rotation,5,ASR,96.3
+CIFAR10,Ours (FAAT),rotation,10,ASR,93.1
+CIFAR10,Ours (FAAT),rotation,15,ASR,88.5
+CIFAR10,Ours (FAAT),rotation,20,ASR,82.0
+CIFAR10,Ours (FAAT),rotation,30,ASR,71.3
+CIFAR10,Ours (FAAT),gaussian_noise,0.01,ASR,97.8
+CIFAR10,Ours (FAAT),gaussian_noise,0.05,ASR,93.1
+CIFAR10,Ours (FAAT),gaussian_noise,0.10,ASR,86.4
+CIFAR10,Ours (FAAT),gaussian_noise,0.20,ASR,74.2
+CIFAR10,Ours (FAAT),blur,3,ASR,97.9
+CIFAR10,Ours (FAAT),blur,5,ASR,95.5
+CIFAR10,Ours (FAAT),blur,7,ASR,90.2
+CIFAR10,Ours (FAAT),blur,9,ASR,84.7
+CIFAR10,Ours (FAAT),scaling,0.5,ASR,85.3
+CIFAR10,Ours (FAAT),scaling,0.75,ASR,94.6
+CIFAR10,Ours (FAAT),scaling,1.0,ASR,98.4
+CIFAR10,Ours (FAAT),scaling,1.5,ASR,92.1
+CIFAR10,Ours (FAAT),scaling,2.0,ASR,84.8

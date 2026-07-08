@@ -1,0 +1,15 @@
+dataset,attack,defense,strength,metric,value
+CIFAR10,BadNets,None,0,ASR,96.2
+CIFAR10,BadNets,None,0,ACC,91.4
+CIFAR10,BadNets,Neural Cleanse,1.0,ASR,2.1
+CIFAR10,BadNets,Neural Cleanse,1.0,ACC,89.7
+CIFAR10,BadNets,STRIP,1.0,ASR,8.3
+CIFAR10,BadNets,STRIP,1.0,ACC,90.2
+CIFAR10,BadNets,Fine-Pruning,0.8,ASR,5.7
+CIFAR10,BadNets,Fine-Pruning,0.8,ACC,88.5
+CIFAR10,BadNets,NAD,1.0,ASR,12.4
+CIFAR10,BadNets,NAD,1.0,ACC,90.8
+CIFAR10,BadNets,ABL,1.0,ASR,3.8
+CIFAR10,BadNets,ABL,1.0,ACC,91.0
+CIFAR10,BadNets,I-BAU,1.0,ASR,15.2
+CIFAR10,BadNets,I-BAU,1.0,ACC,87.3

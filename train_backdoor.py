@@ -92,7 +92,7 @@ parser.add_argument('--dataset', default='cifar10', help='dataset')
 parser.add_argument('--num_levels', type=str, default="36:60:12")
 parser.add_argument('--poison_rate', type=float, default=0.01)
 parser.add_argument('--res_rate', type=float, default=1)
-parser.add_argument('--backdoor_type', default='narcissus', choices=['badnets', 'blend', 'quantize', 'narcissus', 'siba', 'faat', 'faatb'])
+parser.add_argument('--backdoor_type', default='narcissus', choices=['badnets', 'blend', 'quantize', 'narcissus', 'siba', 'faat', 'faatb', 'icit'])
 parser.add_argument('--select_epoch', type=int, default=10, help='epoch which to calculate the stats')
 parser.add_argument('--num_classes', type=int, default=10, help='num of the classes')
 parser.add_argument('--blend_size', type=int, default=32, help='the size of blend image')
@@ -101,6 +101,8 @@ parser.add_argument('--type', type=str, default="0:0:0")
 parser.add_argument('--faat_global_scale', type=float, default=1.0, help='FAAT: scale of delta_global (Narcissus noise); reduce for stealth')
 parser.add_argument('--faat_eps', type=float, default=None, help='FAAT: override L2 budget of adaptive residual (default None = use texture rule)')
 parser.add_argument('--faat_save_trigger', type=str, default=None, help='FAAT/faatb: artifact dir with global_delta.npy+adaptive_delta.npy. None=default ./resource/faat/save_trigger_{nc}_{yt}')
+parser.add_argument('--icit_save_trigger', type=str, default=None, help='ICIT: artifact dir with gen.pth (trained input-conditioned generator)')
+parser.add_argument('--icit_budget', type=float, default=1.5, help='ICIT: per-image L2 budget of the generator perturbation')
 args = parser.parse_args()
 use_cuda = True if torch.cuda.is_available() else False
 device = torch.device("cuda" if use_cuda else "cpu")
@@ -272,6 +274,11 @@ elif args.backdoor_type == 'faatb':
     args.save_trigger = args.faat_save_trigger or ("./resource/faat/save_trigger_" + str(num_classes) + "_" + str(args.y_target))
     poison_train_set = Add_Clean_Label_Train_Trigger_faatb(train_dataset, args.y_target, poison_inds, args.save_trigger, args.faat_global_scale)
     poison_test_set = Add_Test_Trigger_faatb(test_dataset, args.y_target, args.save_trigger, args.faat_global_scale)
+elif args.backdoor_type == 'icit':
+    from faat.apply_ic import Add_Clean_Label_Train_Trigger_icit, Add_Test_Trigger_icit
+    args.save_trigger = args.icit_save_trigger or ("./resource/faat/icit_" + str(num_classes) + "_" + str(args.y_target))
+    poison_train_set = Add_Clean_Label_Train_Trigger_icit(train_dataset, args.y_target, poison_inds, args.save_trigger, device)
+    poison_test_set = Add_Test_Trigger_icit(test_dataset, args.y_target, args.save_trigger, device)
 else:
     if args.selection == 'stealth':
         poison_train_set = Add_Clean_Label_Train_Trigger_blend_stealth(train_dataset, trigger, args.y_target,

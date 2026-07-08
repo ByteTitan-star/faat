@@ -18,4 +18,5 @@ results/
 logs/
 *.log
 data100/
+data_tiny/
 tmp/
