@@ -103,6 +103,7 @@ parser.add_argument('--faat_eps', type=float, default=None, help='FAAT: override
 parser.add_argument('--faat_save_trigger', type=str, default=None, help='FAAT/faatb: artifact dir with global_delta.npy+adaptive_delta.npy. None=default ./resource/faat/save_trigger_{nc}_{yt}')
 parser.add_argument('--icit_save_trigger', type=str, default=None, help='ICIT: artifact dir with gen.pth (trained input-conditioned generator)')
 parser.add_argument('--icit_budget', type=float, default=1.5, help='ICIT: per-image L2 budget of the generator perturbation')
+parser.add_argument('--strong_aug', action='store_true', help='Path-3b: add ColorJitter+RandomErasing to train_transform (survival test: does the trigger survive strong aug?)')
 args = parser.parse_args()
 use_cuda = True if torch.cuda.is_available() else False
 device = torch.device("cuda" if use_cuda else "cpu")
@@ -110,12 +111,22 @@ cudnn.benchmark = True
 set_random_seed(args.seed)
 
 if args.dataset == 'cifar10':
-    train_transform = transforms.Compose([
+    if getattr(args, 'strong_aug', False):
+        train_transform = transforms.Compose([
             transforms.ToPILImage(),
             transforms.Pad(4),
             transforms.RandomHorizontalFlip(),
             transforms.RandomCrop(32),
-            transforms.ToTensor()])
+            transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.1),
+            transforms.ToTensor(),
+            transforms.RandomErasing(p=0.5, scale=(0.02, 0.2))])
+    else:
+        train_transform = transforms.Compose([
+                transforms.ToPILImage(),
+                transforms.Pad(4),
+                transforms.RandomHorizontalFlip(),
+                transforms.RandomCrop(32),
+                transforms.ToTensor()])
     test_transform = transforms.Compose([transforms.ToTensor()])
     train_dataset = datasets.CIFAR10(root='./data', train=True, transform=transforms.ToTensor(), download=True)
     num_classes = 10
