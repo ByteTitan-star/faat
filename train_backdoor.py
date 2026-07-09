@@ -92,7 +92,7 @@ parser.add_argument('--dataset', default='cifar10', help='dataset')
 parser.add_argument('--num_levels', type=str, default="36:60:12")
 parser.add_argument('--poison_rate', type=float, default=0.01)
 parser.add_argument('--res_rate', type=float, default=1)
-parser.add_argument('--backdoor_type', default='narcissus', choices=['badnets', 'blend', 'quantize', 'narcissus', 'siba', 'faat', 'faatb', 'icit'])
+parser.add_argument('--backdoor_type', default='narcissus', choices=['badnets', 'blend', 'quantize', 'narcissus', 'siba', 'faat', 'faatb', 'icit', 'rkt'])
 parser.add_argument('--select_epoch', type=int, default=10, help='epoch which to calculate the stats')
 parser.add_argument('--num_classes', type=int, default=10, help='num of the classes')
 parser.add_argument('--blend_size', type=int, default=32, help='the size of blend image')
@@ -104,6 +104,9 @@ parser.add_argument('--faat_save_trigger', type=str, default=None, help='FAAT/fa
 parser.add_argument('--icit_save_trigger', type=str, default=None, help='ICIT: artifact dir with gen.pth (trained input-conditioned generator)')
 parser.add_argument('--icit_budget', type=float, default=1.5, help='ICIT: per-image L2 budget of the generator perturbation')
 parser.add_argument('--strong_aug', action='store_true', help='Path-3b: add ColorJitter+RandomErasing to train_transform (survival test: does the trigger survive strong aug?)')
+parser.add_argument('--rkt_save_trigger', type=str, default=None, help='RKT: artifact dir with rkt.pth (trained resampling kernel)')
+parser.add_argument('--rkt_scale', type=float, default=0.7, help='RKT: resampling downscale factor s')
+parser.add_argument('--rkt_ksize', type=int, default=5, help='RKT: interpolation kernel size k')
 args = parser.parse_args()
 use_cuda = True if torch.cuda.is_available() else False
 device = torch.device("cuda" if use_cuda else "cpu")
@@ -290,6 +293,11 @@ elif args.backdoor_type == 'icit':
     args.save_trigger = args.icit_save_trigger or ("./resource/faat/icit_" + str(num_classes) + "_" + str(args.y_target))
     poison_train_set = Add_Clean_Label_Train_Trigger_icit(train_dataset, args.y_target, poison_inds, args.save_trigger, device)
     poison_test_set = Add_Test_Trigger_icit(test_dataset, args.y_target, args.save_trigger, device)
+elif args.backdoor_type == 'rkt':
+    from faat.apply_rkt import Add_Clean_Label_Train_Trigger_rkt, Add_Test_Trigger_rkt
+    args.save_trigger = args.rkt_save_trigger or ("./resource/faat/rkt_" + str(num_classes) + "_" + str(args.y_target))
+    poison_train_set = Add_Clean_Label_Train_Trigger_rkt(train_dataset, args.y_target, poison_inds, args.save_trigger, device)
+    poison_test_set = Add_Test_Trigger_rkt(test_dataset, args.y_target, args.save_trigger, device)
 else:
     if args.selection == 'stealth':
         poison_train_set = Add_Clean_Label_Train_Trigger_blend_stealth(train_dataset, trigger, args.y_target,
