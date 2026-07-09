@@ -57,12 +57,12 @@
 
 RKT（scale=0.7）SSIM 随分辨率：32→0.64, 64→0.80, 96→0.85, 128→**0.89**。即使 128×128 仍 < Narcissus@32 的 0.95（且 L2 9.2 vs 1.5，6×）。**wall 不随分辨率消失**——重采样在任何分辨率都被优化噪声支配。
 
-## 5. 防御画像（前沿触发器被什么抓）
+## 5. 防御画像（前沿触发器被什么抓）——双边饱和的防御侧
 
-- AC/SS/STRIP/FP/patch-NC：Narcissus/ICIT/BppAttack **全规避**（clean-label 小触发器）。
-- **全图 L2 NC**：抓 Narcissus/ICIT（噪声型，异常 2.7–3.24）；BppAttack（量化）profile 待补。
+- AC/SS/STRIP/FP/patch-NC：Narcissus/ICIT/BppAttack **全规避**（clean-label 小/全局触发器；patch-NC 假设 patch 触发器→漏全局型）。
+- **全图 L2 NC**（`faat/_nc_probe.py`，确定性）：抓**整个前沿**——Narcissus 异常 **2.72**、ICIT **3.24**、**BppAttack(quantizeB) 6.77**（target 类 ||δ||=1.72 最小，远超 2 阈值）。噪声型 + 量化型都被抓。
 - 频域检测：Narcissus 的 δ 频域孤立时异常，但**加进真实图像后被自然高频方差淹没**（0.358→0.394）→ 频域检测实战失败。
-- **结论**：前沿触发器对标准套件近乎全规避；唯一可靠抓它们的是全图 NC（且只对噪声型）。
+- **结论（双边饱和）**：攻击前沿饱和（§2-4）**且**一个防御（全图 NC）通杀整个前沿（噪声+量化）；标准 patch-NC 全漏。clean-label 触发器空间在攻防两侧都被关闭。
 
 ## 6. 先验饱和（Tier-2 攻击向量也已被做）
 
