@@ -5,16 +5,16 @@ import torch
 import torch.nn as nn
 from torchvision import datasets, transforms
 from torch.utils.data import DataLoader
-from cifar_resnet import ResNet34, ResNet50
+from cifar_resnet import ResNet34, ResNet50, ResNet101, ResNet152
 from faat.proxy import set_random_seed
 
 DEV = 'cuda'
-ARCH = {'resnet34': ResNet34, 'resnet50': ResNet50}
+ARCH = {'resnet34': ResNet34, 'resnet50': ResNet50, 'resnet101': ResNet101, 'resnet152': ResNet152}
 
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument('--arch', choices=['resnet34', 'resnet50'], required=True)
+    ap.add_argument('--arch', choices=['resnet34', 'resnet50', 'resnet101', 'resnet152'], required=True)
     ap.add_argument('--dataset', default='cifar10')
     ap.add_argument('--data_dir', default='./data')
     ap.add_argument('--num_classes', type=int, default=10)
