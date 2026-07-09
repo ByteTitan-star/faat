@@ -64,11 +64,13 @@ RKT（scale=0.7）SSIM 随分辨率：32→0.64, 64→0.80, 96→0.85, 128→**0
 - 频域检测：Narcissus 的 δ 频域孤立时异常，但**加进真实图像后被自然高频方差淹没**（0.358→0.394）→ 频域检测实战失败。
 - **结论（双边饱和）**：攻击前沿饱和（§2-4）**且**一个防御（全图 NC）通杀整个前沿（噪声+量化）；标准 patch-NC 全漏。clean-label 触发器空间在攻防两侧都被关闭。
 
-## 6. 先验饱和（Tier-2 攻击向量也已被做）
+## 6. 先验饱和（所有攻击向量均已被做）
 
-- **pipeline/augmentation backdoor**（投毒放训练代码）：Flareon（ACM 10.1145/3774648）= 供应链代码注入 train-time 增强 pipeline；Augmentation Backdoors（OpenReview）；NTU/arXiv dynamic-augmentation。
+- **触发器设计（Tier-1）**：6 机制 wall（§3）。
+- **pipeline/augmentation backdoor（Tier-2）**：Flareon（ACM 10.1145/3774648）= 供应链代码注入 train-time 增强 pipeline；Augmentation Backdoors（OpenReview）；NTU/arXiv dynamic-augmentation。
 - **可迁移不可见 clean-label**：Narcissus（CCS'23）本身可迁移；"A Transferable Backdoor Attack Against Black-Box Models"（PR）；AAAI'24 Alternated Training。
-- **结论**：Tier-2 攻击向量也饱和。两层威胁模型均无 novel 攻击空间。
+- **特征/子空间对齐（"类中信号"）**：**SGBA**（Applied Soft Computing 2025, DOI 10.1016/j.asoc.2025.113857）= "extract target class **principal subspace**, optimize trigger to **drive poisoned features into this subspace**, **directional perturbations**, leverage intrinsic distribution of target class features"（CIFAR10/CelebA/ImageNet）。我们独立实现的 PA-ICT（输入条件 PCA 对齐）实验上验证了该思路（ASR 0.97/BA 0.95/绕 NC），但机制 = SGBA 已发表。
+- **结论（4 角度证伪）**：clean-label 后门攻击 novel 空间在 4 个独立角度（触发器 wall / pipeline 先验 / 可迁移先验 / 子空间对齐先验）均被封死。两层威胁模型均无 novel 攻击空间。
 
 ## 7. 启示（ constructive ）
 
