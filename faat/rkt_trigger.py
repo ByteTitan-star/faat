@@ -7,16 +7,19 @@ NC), RKT is a NON-ADDITIVE global resampling transform:
 
     x' = Upsample_K( Downsample_s(x) )
 
+K is HARD-NORMALIZED to sum=1 inside forward -> always a valid, BRIGHTNESS-PRESERVING
+interpolation kernel (cannot amplify -> cannot cheat via a per-channel gain, which the first
+implementation did: it zeroed the green channel and crashed SSIM to 0.34). There is NO gain
+parameter: a resampling must preserve brightness by definition; the signal comes purely from
+kernel SHAPE + downsample scale.
+
 The trigger is a fixed shared (s, K) -- index-independent (C2 OK); global & robust to
 RandomCrop/Flip (C3 OK). Contribution analog to BppAttack ("optimize trigger via RGB
 quantization"): here "optimize trigger via resampling kernel".
 
-Hypotheses (probe-verified, not claims):
-  * ASR comparable to BppAttack (structured global signal, learnable).
-  * Frequency detector that catches Narcissus (extra high-freq) may MISS RKT (downsample
-    REMOVES high-freq -- opposite signature).
-  * Full-image NC: may or may not evade (ICIT's input-conditioning did NOT evade NC at 3.24;
-    RKT's non-additive transform is a different case -- test honestly, do not pre-claim).
+Open question (this file's reason for existing): can a brightness-preserving resampling
+reach high proxyASR at stealthy SSIM>=0.9? If not, RKT hits the same wall as ChromaTrigger
+(low-amplitude smooth transforms don't flip classifiers). The sweep answers this.
 """
 import os
 import torch
@@ -34,10 +37,8 @@ def _smooth_init(ksize):
 
 
 class RKTTrigger(nn.Module):
-    """Resampling trigger: x' = Upsample_K( Downsample_s(x) ). K is a learnable [k,k]
-    interpolation kernel (kept ~sum-1 by a regularizer -> brightness-preserving -> stealthy).
-    A per-channel `gain` (init 1, reg-kept) lets the optimizer modulate strength per channel
-    (mirrors BppAttack's per-channel quantization levels)."""
+    """Resampling trigger: x' = Upsample_K( Downsample_s(x) ). K is a learnable [k,k] kernel,
+    HARD-normalized to sum=1 in forward (valid interpolator, brightness-preserving, no gain)."""
 
     def __init__(self, scale=0.7, ksize=5, channels=3):
         super().__init__()
@@ -45,16 +46,18 @@ class RKTTrigger(nn.Module):
         self.ksize = ksize
         self.channels = channels
         self.kernel = nn.Parameter(_smooth_init(ksize).clone())
-        self.gain = nn.Parameter(torch.ones(channels))
+
+    def _norm_kernel(self):
+        k = self.kernel
+        k = k / (k.sum() + 1e-8)                            # HARD sum=1
+        return k.view(1, 1, self.ksize, self.ksize).expand(self.channels, 1, -1, -1).contiguous()
 
     def forward(self, x):
         H = x.shape[-1]
         d = max(1, int(round(H * self.scale)))
-        x_down = F.interpolate(x, size=d, mode='area')          # remove high-freq (fixed)
+        x_down = F.interpolate(x, size=d, mode='area')     # remove high-freq (fixed)
         x_nearest = F.interpolate(x_down, size=H, mode='nearest')
-        k = self.kernel.view(1, 1, self.ksize, self.ksize).expand(self.channels, 1, -1, -1).contiguous()
-        out = F.conv2d(x_nearest, k, padding=self.ksize // 2, groups=self.channels)
-        out = out * self.gain.view(1, -1, 1, 1)
+        out = F.conv2d(x_nearest, self._norm_kernel(), padding=self.ksize // 2, groups=self.channels)
         return torch.clamp(out, 0.0, 1.0)
 
 
@@ -62,7 +65,7 @@ def optimize_rkt_trigger(proxy, images, target, device, scale=0.7, ksize=5,
                          steps=3000, lr=5e-3, batch_size=128, stealth_lam=1e-2,
                          exclude_target=True, seed=0, log_every=300, logger=print):
     """Optimize the resampling kernel K so proxy(RKT(x)) -> target over clean non-target
-    images. Saves K+gain+meta to `save_trigger`. Returns info dict."""
+    images. Returns info dict with the trained trigger."""
     from .global_trigger import proxy_argmax
     torch.manual_seed(seed)
     images = images.to(device)
@@ -80,8 +83,8 @@ def optimize_rkt_trigger(proxy, images, target, device, scale=0.7, ksize=5,
            % (M, scale, ksize, steps))
 
     trig = RKTTrigger(scale=scale, ksize=ksize).to(device)
-    init_k = _smooth_init(ksize).to(device)
-    opt = torch.optim.Adam([trig.kernel, trig.gain], lr=lr)
+    init_k = _smooth_init(ksize).to(device)                # sum=1 reference for stealth reg
+    opt = torch.optim.Adam([trig.kernel], lr=lr)
     tgt = torch.full((batch_size,), target, dtype=torch.long, device=device)
     g = torch.Generator(device='cpu').manual_seed(seed)
 
@@ -99,10 +102,8 @@ def optimize_rkt_trigger(proxy, images, target, device, scale=0.7, ksize=5,
         idx = torch.randint(0, M, (batch_size,), generator=g)
         x = imgs[idx]
         xp = trig(x)
-        k = trig.kernel
-        reg = (stealth_lam * (k - init_k).pow(2).sum()
-               + stealth_lam * (k.sum() - 1.0).pow(2)
-               + stealth_lam * (trig.gain - 1.0).pow(2).sum())
+        k_eff = trig.kernel / (trig.kernel.sum() + 1e-8)
+        reg = stealth_lam * (k_eff - init_k).pow(2).sum()           # keep kernel ~smooth
         loss = F.cross_entropy(proxy(xp), tgt) + reg
         opt.zero_grad(); loss.backward(); opt.step()
         if (step + 1) % log_every == 0 or step == 0:
@@ -115,11 +116,10 @@ def optimize_rkt_trigger(proxy, images, target, device, scale=0.7, ksize=5,
 def save_rkt_trigger(trig, save_trigger, scale, ksize, final_asr):
     os.makedirs(save_trigger, exist_ok=True)
     torch.save({'kernel': trig.kernel.detach().cpu(),
-                'gain': trig.gain.detach().cpu(),
                 'scale': scale, 'ksize': ksize},
                os.path.join(save_trigger, 'rkt.pth'))
     with open(os.path.join(save_trigger, 'meta.txt'), 'w') as f:
-        f.write('RKT resampling-kernel trigger. proxyASR=%.4f scale=%.2f ksize=%d\n'
+        f.write('RKT resampling-kernel trigger (no-gain, sum=1). proxyASR=%.4f scale=%.2f ksize=%d\n'
                 % (final_asr, scale, ksize))
 
 
@@ -127,7 +127,6 @@ def load_rkt_trigger(save_trigger, device):
     ck = torch.load(os.path.join(save_trigger, 'rkt.pth'), map_location=device)
     trig = RKTTrigger(scale=ck['scale'], ksize=ck['ksize']).to(device)
     trig.kernel.data = ck['kernel'].to(device)
-    trig.gain.data = ck['gain'].to(device)
     trig.eval()
     for p in trig.parameters():
         p.requires_grad_(False)
