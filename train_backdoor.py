@@ -92,7 +92,7 @@ parser.add_argument('--dataset', default='cifar10', help='dataset')
 parser.add_argument('--num_levels', type=str, default="36:60:12")
 parser.add_argument('--poison_rate', type=float, default=0.01)
 parser.add_argument('--res_rate', type=float, default=1)
-parser.add_argument('--backdoor_type', default='narcissus', choices=['badnets', 'blend', 'quantize', 'narcissus', 'siba', 'faat', 'faatb', 'icit', 'rkt', 'pat', 'feast', 'style'])
+parser.add_argument('--backdoor_type', default='narcissus', choices=['badnets', 'blend', 'quantize', 'narcissus', 'siba', 'faat', 'faatb', 'icit', 'rkt', 'pat', 'feast', 'style', 'icaf', 'opal'])
 parser.add_argument('--select_epoch', type=int, default=10, help='epoch which to calculate the stats')
 parser.add_argument('--num_classes', type=int, default=10, help='num of the classes')
 parser.add_argument('--blend_size', type=int, default=32, help='the size of blend image')
@@ -113,6 +113,8 @@ parser.add_argument('--feast_save_trigger', type=str, default=None, help='FEAST:
 parser.add_argument('--feast_starve_eps', type=float, default=8.0/255, help='FEAST: starvation L_inf budget; 0=phase-only ablation (no starvation)')
 parser.add_argument('--feast_starve_steps', type=int, default=30, help='FEAST: starvation PGD steps')
 parser.add_argument('--style_save_trigger', type=str, default=None, help='Style: artifact dir with style.pth (universal Gram-style delta)')
+parser.add_argument('--icaf_save_trigger', type=str, default=None, help='ICAF: artifact dir with icaf.pth (isophote chromatic-aberration warp mask)')
+parser.add_argument('--opal_save_trigger', type=str, default=None, help='OPAL: artifact dir with opal.pth (secret ordinal key)')
 args = parser.parse_args()
 use_cuda = True if torch.cuda.is_available() else False
 device = torch.device("cuda" if use_cuda else "cpu")
@@ -323,6 +325,16 @@ elif args.backdoor_type == 'style':
     args.save_trigger = args.style_save_trigger or ("./resource/faat/style_" + str(num_classes) + "_" + str(args.y_target))
     poison_train_set = Add_Clean_Label_Train_Trigger_style(train_dataset, args.y_target, poison_inds, args.save_trigger, device)
     poison_test_set = Add_Test_Trigger_style(test_dataset, args.y_target, args.save_trigger, device)
+elif args.backdoor_type == 'icaf':
+    from faat.apply_icaf import Add_Clean_Label_Train_Trigger_icaf, Add_Test_Trigger_icaf
+    args.save_trigger = args.icaf_save_trigger or ("./resource/faat/icaf_" + str(num_classes) + "_" + str(args.y_target))
+    poison_train_set = Add_Clean_Label_Train_Trigger_icaf(train_dataset, args.y_target, poison_inds, args.save_trigger, device)
+    poison_test_set = Add_Test_Trigger_icaf(test_dataset, args.y_target, args.save_trigger, device)
+elif args.backdoor_type == 'opal':
+    from faat.apply_opal import Add_Clean_Label_Train_Trigger_opal, Add_Test_Trigger_opal
+    args.save_trigger = args.opal_save_trigger or ("./resource/faat/opal_" + str(num_classes) + "_" + str(args.y_target))
+    poison_train_set = Add_Clean_Label_Train_Trigger_opal(train_dataset, args.y_target, poison_inds, args.save_trigger, device)
+    poison_test_set = Add_Test_Trigger_opal(test_dataset, args.y_target, args.save_trigger, device)
 else:
     if args.selection == 'stealth':
         poison_train_set = Add_Clean_Label_Train_Trigger_blend_stealth(train_dataset, trigger, args.y_target,

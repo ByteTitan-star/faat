@@ -59,6 +59,7 @@ def pixel_apply(x, delta):
 # ----------------------------- unified apply / artifact -----------------------------
 
 def feast_apply(x, mode, trig):
+    trig = trig.to(x.device)
     return phase_apply(x, trig) if mode == 'phase' else pixel_apply(x, trig)
 
 
