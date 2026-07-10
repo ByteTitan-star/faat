@@ -92,7 +92,7 @@ parser.add_argument('--dataset', default='cifar10', help='dataset')
 parser.add_argument('--num_levels', type=str, default="36:60:12")
 parser.add_argument('--poison_rate', type=float, default=0.01)
 parser.add_argument('--res_rate', type=float, default=1)
-parser.add_argument('--backdoor_type', default='narcissus', choices=['badnets', 'blend', 'quantize', 'narcissus', 'siba', 'faat', 'faatb', 'icit', 'rkt', 'pat'])
+parser.add_argument('--backdoor_type', default='narcissus', choices=['badnets', 'blend', 'quantize', 'narcissus', 'siba', 'faat', 'faatb', 'icit', 'rkt', 'pat', 'feast'])
 parser.add_argument('--select_epoch', type=int, default=10, help='epoch which to calculate the stats')
 parser.add_argument('--num_classes', type=int, default=10, help='num of the classes')
 parser.add_argument('--blend_size', type=int, default=32, help='the size of blend image')
@@ -109,6 +109,9 @@ parser.add_argument('--rkt_scale', type=float, default=0.7, help='RKT: resamplin
 parser.add_argument('--rkt_ksize', type=int, default=5, help='RKT: interpolation kernel size k')
 parser.add_argument('--pat_save_trigger', type=str, default=None, help='PAT: artifact dir with pat.pth')
 parser.add_argument('--pat_alpha', type=float, default=1.0, help='PAT: JND clip scale alpha')
+parser.add_argument('--feast_save_trigger', type=str, default=None, help='FEAST: artifact dir with feast.pth (universal low-freq phase shift dPhi)')
+parser.add_argument('--feast_starve_eps', type=float, default=8.0/255, help='FEAST: starvation L_inf budget; 0=phase-only ablation (no starvation)')
+parser.add_argument('--feast_starve_steps', type=int, default=30, help='FEAST: starvation PGD steps')
 args = parser.parse_args()
 use_cuda = True if torch.cuda.is_available() else False
 device = torch.device("cuda" if use_cuda else "cpu")
@@ -305,6 +308,15 @@ elif args.backdoor_type == 'pat':
     args.save_trigger = args.pat_save_trigger or ("./resource/faat/pat_" + str(num_classes) + "_" + str(args.y_target))
     poison_train_set = Add_Clean_Label_Train_Trigger_pat(train_dataset, args.y_target, poison_inds, args.save_trigger, device)
     poison_test_set = Add_Test_Trigger_pat(test_dataset, args.y_target, args.save_trigger, device)
+elif args.backdoor_type == 'feast':
+    from faat.apply_feast import Add_Clean_Label_Train_Trigger_feast, Add_Test_Trigger_feast
+    args.save_trigger = args.feast_save_trigger or ("./resource/faat/feast_" + str(num_classes) + "_" + str(args.y_target))
+    poison_train_set = Add_Clean_Label_Train_Trigger_feast(train_dataset, args.y_target, poison_inds,
+                                                            args.save_trigger, device,
+                                                            starve_eps=args.feast_starve_eps,
+                                                            starve_steps=args.feast_starve_steps,
+                                                            num_classes=num_classes)
+    poison_test_set = Add_Test_Trigger_feast(test_dataset, args.y_target, args.save_trigger, device)
 else:
     if args.selection == 'stealth':
         poison_train_set = Add_Clean_Label_Train_Trigger_blend_stealth(train_dataset, trigger, args.y_target,
