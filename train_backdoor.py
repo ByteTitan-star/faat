@@ -16,6 +16,25 @@ from cifar_resnet import ResNet18, ResNet50, ResNet34
 from utils import *
 from PIL import Image
 
+
+class RandomD4(object):
+    """Pixel-exact random D4 augmentation: apply one of the 8 dihedral ops (rot90 x flip) to a
+    [C,H,W] tensor. This is the augmentation ORBIT-IRREP is provably closed under (flip+90-rot map
+    any orbit element to another). Used for the augmentation-closure stress test."""
+    def __init__(self, p=0.5):
+        self.p = p
+
+    def __call__(self, t):
+        if torch.rand(1).item() > self.p:
+            return t
+        nrot = int(torch.randint(0, 4, (1,)).item())
+        if nrot:
+            t = torch.rot90(t, nrot, dims=[-2, -1])
+        if torch.randint(0, 2, (1,)).item():
+            t = torch.flip(t, dims=[-1])
+        return t
+
+
 # Silence PIL's per-chunk PNG decode debug spam. GTSRB ImageFolder loads tens of
 # thousands of PNGs; with the root logger at DEBUG (set below) PIL emits millions
 # of "STREAM b'IHDR'/b'IDAT'" lines -> ~111MB log per run. Victim training is a
@@ -92,7 +111,7 @@ parser.add_argument('--dataset', default='cifar10', help='dataset')
 parser.add_argument('--num_levels', type=str, default="36:60:12")
 parser.add_argument('--poison_rate', type=float, default=0.01)
 parser.add_argument('--res_rate', type=float, default=1)
-parser.add_argument('--backdoor_type', default='narcissus', choices=['badnets', 'blend', 'quantize', 'narcissus', 'siba', 'faat', 'faatb', 'icit', 'rkt', 'pat', 'feast', 'style', 'icaf', 'opal'])
+parser.add_argument('--backdoor_type', default='narcissus', choices=['badnets', 'blend', 'quantize', 'narcissus', 'siba', 'faat', 'faatb', 'icit', 'rkt', 'pat', 'feast', 'style', 'icaf', 'opal', 'orbit'])
 parser.add_argument('--select_epoch', type=int, default=10, help='epoch which to calculate the stats')
 parser.add_argument('--num_classes', type=int, default=10, help='num of the classes')
 parser.add_argument('--blend_size', type=int, default=32, help='the size of blend image')
@@ -115,6 +134,10 @@ parser.add_argument('--feast_starve_steps', type=int, default=30, help='FEAST: s
 parser.add_argument('--style_save_trigger', type=str, default=None, help='Style: artifact dir with style.pth (universal Gram-style delta)')
 parser.add_argument('--icaf_save_trigger', type=str, default=None, help='ICAF: artifact dir with icaf.pth (isophote chromatic-aberration warp mask)')
 parser.add_argument('--opal_save_trigger', type=str, default=None, help='OPAL: artifact dir with opal.pth (secret ordinal key)')
+parser.add_argument('--orbit_save_trigger', type=str, default=None, help='ORBIT-IRREP: artifact dir with orbit.pth (D4-orbit base patch b)')
+parser.add_argument('--orbit_train_g', type=int, default=-1, help='ORBIT: orbit element for TRAIN poison (-1=random orbit=true ORBIT; 0..7=fixed-orientation ablation)')
+parser.add_argument('--orbit_test_g', type=int, default=-1, help='ORBIT: orbit element for TEST trigger (-1=random orbit; 0..7=fixed). Cross-orientation generalization test = train_g fixed, test_g -1.')
+parser.add_argument('--d4_aug', action='store_true', help='Add pixel-exact random D4 augmentation (rot90+flip) -> the group ORBIT-IRREP is closed under. Stress test for augmentation closure.')
 args = parser.parse_args()
 use_cuda = True if torch.cuda.is_available() else False
 device = torch.device("cuda" if use_cuda else "cpu")
@@ -163,6 +186,9 @@ else :
     num_classes = args.num_classes
     train_dataset = datasets.ImageFolder(root=os.path.join(args.data_dir, 'train'), transform=transforms.ToTensor())
     test_dataset = datasets.ImageFolder(root=os.path.join(args.data_dir, 'val'), transform=transforms.ToTensor())
+
+if getattr(args, 'd4_aug', False):
+    train_transform = transforms.Compose(train_transform.transforms + [RandomD4(p=1.0)])
 
 if args.backdoor_type == 'badnets':
     checkboards = {}
@@ -335,6 +361,11 @@ elif args.backdoor_type == 'opal':
     args.save_trigger = args.opal_save_trigger or ("./resource/faat/opal_" + str(num_classes) + "_" + str(args.y_target))
     poison_train_set = Add_Clean_Label_Train_Trigger_opal(train_dataset, args.y_target, poison_inds, args.save_trigger, device)
     poison_test_set = Add_Test_Trigger_opal(test_dataset, args.y_target, args.save_trigger, device)
+elif args.backdoor_type == 'orbit':
+    from faat.apply_orbit import Add_Clean_Label_Train_Trigger_orbit, Add_Test_Trigger_orbit
+    args.save_trigger = args.orbit_save_trigger or ("./resource/faat/orbit_" + str(num_classes) + "_" + str(args.y_target))
+    poison_train_set = Add_Clean_Label_Train_Trigger_orbit(train_dataset, args.y_target, poison_inds, args.save_trigger, device, fixed_g=args.orbit_train_g)
+    poison_test_set = Add_Test_Trigger_orbit(test_dataset, args.y_target, args.save_trigger, device, test_g=args.orbit_test_g)
 else:
     if args.selection == 'stealth':
         poison_train_set = Add_Clean_Label_Train_Trigger_blend_stealth(train_dataset, trigger, args.y_target,
