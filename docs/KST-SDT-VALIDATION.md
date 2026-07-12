@@ -60,3 +60,34 @@ CUDA_VISIBLE_DEVICES=1 $PY -u faat/kst_sdt_validate.py       --trigger sdt      
 CUDA_VISIBLE_DEVICES=2 $PY -u faat/kst_sdt_validate.py       --trigger narcissus --gpu 0 --epochs 40 --poison_rate 0.05 --eps 0.0314 --seed 1
 ```
 artifact:`resource/kst_sdt/{zca.pt, score_net_sigma0.1.pt, kst_delta_*.pt, narc_delta_*.pt}`;结果:`results/kst_sdt/{kst,sdt,narcissus}_eps0.031_pr0.05_s1_result.json` + `*_s_*.npy` / `*_Sg_*.npy` + `kst_sdt_validation.png`。
+
+---
+
+## 6. P0 结果 — ε 扫荡 + 防御评估(2026-07-12)
+
+脚本:`faat/kst_sdt_validate.py --save_model`、`faat/defense_eval.py`、`faat/plot_pareto.py`。图:`results/kst_sdt/kst_pareto_defense.png`。
+
+### 6.1 KST ε 扫荡(5% 投毒, 40ep, seed1)
+
+| ε | ASR | BA | SSIM | L2 | **δ 谱峰** | s-dprime | STRIP AUC | 频域签名 peak/med |
+|---|---|---|---|---|---|---|---|---|
+| 8/255 | 0.956 | 0.841 | 0.991 | 0.59 | **1.0** | 2.71 | 0.489 | 42 |
+| 12/255 | 0.990 | 0.822 | 0.976 | 1.00 | **1.0** | 3.87 | 0.575 | 37 |
+| 16/255 | **0.998** | 0.850 | 0.961 | 1.33 | **1.0** | 4.64 | 0.787 | 9 |
+| 20/255 | 0.994 | 0.842 | 0.940 | 1.71 | **1.0** | 5.50 | 0.904 | 11 |
+| Narcissus 8/255 | 0.998 | 0.846 | 0.946 | 1.64 | **68.8** | — | 0.789 | **11217** |
+
+### 6.2 关键结论(Pareto 支配 + 频域规避)
+
+1. **KST 在 ε=16/255 达 ASR=0.998 = Narcissus,同时 SSIM=0.961 > Narcissus 0.946,δ 谱峰=1.0 vs Narcissus 68.8。** 即在等 ASR(99.8%)工作点上,KST 在隐蔽性(SSIM)和频域不可见性(谱峰)上**同时 Pareto 支配 Narcissus**。这是用户 8 墙后第一个结构性压过 Narcissus 的机制。
+2. **δ 谱峰在所有 ε 恒为 1.0**(FFT 相位参数化的构造性保证)——Narcissus 的 68.8 是其频域集中性质,提 ε 只会更显眼;KST 提 ε 谱峰不变。结构性差异。
+3. **频域签名防御(集合级,平均嫌疑图提取共同 δ 峰)**:Narcissus peak/med=**11217**(触发器被提取,可检),KST=9-42(估计噪声底,无可提取峰,**规避**)。逐图 FreqSig AUC 两者均≈0.5(频域防御是集合级的,逐图被自然 1/f 谱方差淹没——诚实)。
+4. **STRIP(行为防御)**:KST 低 ε 规避(AUC 0.489 < 随机),高 ε 被抓(0.90);Narcissus 0.79。STRIP 捕捉强后门行为,与触发器类型无关——预期。KST 低 ε 同时规避频域 + STRIP。
+
+### 6.3 P0 完成度
+- ✅ P0-1 ε 扫荡:完成(KST 4 个 ε,Pareto 曲线 + 支配点确立)。
+- ✅ P0-3 防御评估:完成(STRIP + 频域签名,KST vs Narcissus 对照)。
+- ⬜ P0-2 降投毒 1%:未做(下一步)。
+- ⬜ P0-4 CIFAR-100/GTSRB 迁移:未做(下一步)。
+- P1(SDT 第二创新点)见 `docs/SDT-ROADMAP.md`,本轮未动。
+- P2/P3 用户指定不做。
