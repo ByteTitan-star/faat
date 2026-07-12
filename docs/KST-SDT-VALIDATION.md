@@ -191,15 +191,15 @@ P0-2/P0-2b 用了 **dirty-label**(投毒非目标类、改标签)+ 对比 Narcis
 | selection | **KST best** | Badnets-C | Blended-C | MultiBpp-RGB | MultiBpp-B |
 |---|---|---|---|---|---|
 | random | 27.00 (ε16) | 36.37 | 49.87 | 30.95 | 8.81 |
-| forget | **86.15 (ε16)** ✅ | 64.25 | 70.48 | 81.18 | 80.95 |
+| forget | **86.76 (ε16)** ✅ | 64.25 | 70.48 | 81.18 | 80.95 |
 | res/linear | **92.59 (ε20)** ✅ | 68.78 | 75.86 | 85.09 | 89.70 |
 
-KST 详细:ε16 random 27.00/BA94.96、ε16 forget 86.15/BA94.63、ε16 res/linear 80.47/BA94.56、ε20 res/linear 92.59/BA94.74。
+KST 详细:ε16 random 27.00/BA94.96、ε16 forget 86.76/BA94.68、ε16 res/linear 80.47/BA94.56、ε20 res/linear 92.59/BA94.74。
 
 图:`results/kst_sdt/cleanlabel_vs_baseline.png`。summary:`cleanlabel_summary.json`。
 
 ### 9.4 结论(反转 P0-2b 的"墙")
-1. **KST + Component A 在 forget 上超过 baseline 全部触发器**(86.15 vs 最优 MultiBpp-RGB 81.18,+4.97)。
+1. **KST + Component A 在 forget 上超过 baseline 全部触发器**(86.76 vs 最优 MultiBpp-RGB 81.18,+5.58)。
 2. **KST ε20 + Component A 在 res/linear 上超过 baseline 全部触发器**(92.59 vs 最优 MultiBpp-B 89.70,+2.89)。
 3. BA ~94.7% 持平 baseline(~94.5%)。
 4. **隐蔽性**:KST 平谱(δ峰=1.0)+ SSIM 0.94(ε20)/0.96(ε16);baseline 4 个触发器全部频域有结构(无平谱)。KST 在"频域不可见"轴上独家。
