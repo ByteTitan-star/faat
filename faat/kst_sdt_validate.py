@@ -158,32 +158,47 @@ class KST:
             total = total + prods.prod(dim=1)           # product of 4 projections
         return total
 
-    def build(self, x_clean, mu, W, eps, steps=400, batch=512, device="cuda"):
-        """Optimise FFT phases (flat magnitude) to maximise mean s(x+delta)."""
-        cache = os.path.join(RES, f"kst_delta_r{self.r}_eps{eps:.4f}.pt")
+    def build(self, x_clean, mu, W, eps, steps=400, batch=512, device="cuda",
+              proxy=None, target=0, alpha=0.0, S=500.0):
+        """Optimise FFT phases (flat magnitude -> spectrally flat delta).
+
+        Objective (KST-Learn when proxy given):
+            min  CE_proxy(x+delta, target)  -  alpha * s(x+delta) / S
+        s.t. flat magnitude spectrum (hard, via phase parameterisation) + Linf=eps.
+        proxy=None -> original KST (pure s maximisation)."""
+        use_ce = proxy is not None
+        cache = os.path.join(RES, f"kst_delta_r{self.r}_eps{eps:.4f}_a{alpha}_ce{int(use_ce)}.pt")
         if os.path.exists(cache):
             return torch.load(cache, map_location=device)
         x = x_clean.to(device)
         mu = mu.to(device); W = W.to(device)
-        # learnable phases for rfft2 output [3,32,17]; flat magnitude (DC=0 -> zero mean)
         phase = torch.zeros(3, 32, 17, device=device, requires_grad=True)
         mag = torch.ones(3, 32, 17, device=device)
         mag[:, 0, 0] = 0.0                               # kill DC -> zero-mean delta
         opt = torch.optim.Adam([phase], lr=0.1)
         idx_pool = torch.randperm(len(x), device=device)[:min(batch*4, len(x))]
+        tgt = torch.full((batch,), target, dtype=torch.long, device=device)
         for step in range(steps):
             idx = idx_pool[torch.randint(0, len(idx_pool), (batch,), device=device)]
             xb = x[idx]
             Fd = mag * torch.exp(1j * phase)             # [3,32,17] complex
             delta = torch.fft.irfft2(Fd, s=(32, 32), norm="ortho")   # [3,32,32]
-            # normalise to unit L_inf (scalar -> preserves spectral shape), then scale to eps
             dmax = delta.abs().max().clamp(min=1e-6)
             delta_n = eps * (delta / dmax)
-            xw = zca_whiten(torch.clamp(xb + delta_n, 0, 1), mu, W)
-            loss = -self.s(xw).mean()
+            x_adv = torch.clamp(xb + delta_n, 0, 1)
+            if use_ce:
+                loss = F.cross_entropy(proxy(x_adv), tgt)
+                if alpha > 0:
+                    s_val = self.s(zca_whiten(x_adv, mu, W)).mean()
+                    loss = loss - alpha * (s_val / S)
+                extra = f"ce={loss.item():.3f}"
+            else:
+                s_val = self.s(zca_whiten(x_adv, mu, W)).mean()
+                loss = -s_val
+                extra = f"s={s_val.item():.3f}"
             opt.zero_grad(); loss.backward(); opt.step()
             if step % 50 == 0:
-                print(f"  [kst] step{step} s={-loss.item():.4f} Linf={delta_n.abs().max().item():.4f}", flush=True)
+                print(f"  [kst] step{step} {extra} Linf={delta_n.abs().max().item():.4f}", flush=True)
         with torch.no_grad():
             Fd = mag * torch.exp(1j * phase)
             delta = torch.fft.irfft2(Fd, s=(32, 32), norm="ortho")
@@ -380,6 +395,12 @@ def main():
     ap.add_argument("--target", type=int, default=0)
     ap.add_argument("--seed", type=int, default=1)
     ap.add_argument("--quick", action="store_true")
+    ap.add_argument("--save_model", action="store_true",
+                    help="save victim model_last.pth + args.json for defense eval")
+    ap.add_argument("--proxy_path", default=None,
+                    help="clean ResNet18 proxy for KST-Learn CE term (None=original KST)")
+    ap.add_argument("--kst_alpha", type=float, default=0.0,
+                    help="weight on 4th-order s term in KST-Learn (0=pure CE)")
     args = ap.parse_args()
 
     device = f"cuda:{args.gpu}"
@@ -387,6 +408,8 @@ def main():
     np.random.seed(args.seed); torch.manual_seed(args.seed)
 
     tag = f"{args.trigger}_eps{args.eps:.3f}_pr{args.poison_rate}_s{args.seed}"
+    if args.trigger == "kst" and args.proxy_path:
+        tag = tag + f"_a{args.kst_alpha}"
     if args.quick:
         tag += "_quick"
     print(f"\n===== {tag}  device={device} =====", flush=True)
@@ -411,7 +434,20 @@ def main():
     if args.trigger == "kst":
         mu, W = fit_zca(xtr)
         kst = KST(r=4, device=device)
-        delta = kst.build(xtr, mu, W, args.eps, steps=400 if not args.quick else 60, device=device)
+        proxy = None
+        if args.proxy_path:
+            from cifar_resnet import ResNet18 as _R18
+            sd = torch.load(args.proxy_path, map_location=device)
+            if isinstance(sd, dict) and "state_dict" in sd:
+                sd = sd["state_dict"]
+            proxy = _R18(num_classes=10).to(device)
+            proxy.load_state_dict(sd); proxy.eval()
+            for p in proxy.parameters():
+                p.requires_grad_(False)
+            print(f"loaded proxy {args.proxy_path} (KST-Learn, alpha={args.kst_alpha})", flush=True)
+        delta = kst.build(xtr, mu, W, args.eps,
+                          steps=(1000 if proxy else 400) if not args.quick else 60, device=device,
+                          proxy=proxy, target=args.target, alpha=args.kst_alpha)
         delta_cpu = delta.cpu()
         xtr_p = xtr.clone(); xtr_p[pidx] = torch.clamp(xtr[pidx] + delta_cpu, 0, 1)
         ytr_p = ytr.clone(); ytr_p[pidx] = args.target
@@ -504,6 +540,17 @@ def main():
     with open(os.path.join(OUT, f"{tag}_result.json"), "w") as f:
         json.dump(diag_out, f, indent=2)
     print(f"saved -> {OUT}/{tag}_result.json", flush=True)
+
+    if args.save_model:
+        run_dir = os.path.join(OUT, tag)
+        os.makedirs(run_dir, exist_ok=True)
+        torch.save(model.state_dict(), os.path.join(run_dir, "model_last.pth"))
+        with open(os.path.join(run_dir, "args.json"), "w") as f:
+            json.dump(vars(args), f, indent=2)
+        # also copy the universal delta (kst/narcissus) for self-contained defense eval
+        if "delta_universal" in diag:
+            torch.save(diag["delta_universal"], os.path.join(run_dir, "delta.pth"))
+        print(f"model+args saved -> {run_dir}/", flush=True)
 
 
 def save_delta_png(delta, path):

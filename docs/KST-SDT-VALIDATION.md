@@ -131,3 +131,43 @@ artifact:`resource/kst_sdt/{zca.pt, score_net_sigma0.1.pt, kst_delta_*.pt, narc_
 - **🔥 P0-2b(新,最高优先)**:KST-Learn——加 learnability/CE-proxy 项,目标 1% 投毒下 ASR≥Narcissus + 平谱 + SSIM>0.95。
 - ⬜ P0-4 CIFAR-100/GTSRB 迁移。
 - P1(SDT 第二创新点)`docs/SDT-ROADMAP.md`。P2/P3 不做。
+
+---
+
+## 8. P0-2b 结果 — KST-Learn 失败(2026-07-12,诚实负向 = 墙)
+
+脚本 `scripts/run_p02b_kstlearn.sh`、`faat/plot_p02b.py`。1% 投毒,60ep,3 seed。KST-Learn = 在 KST.build 目标加 `CE_proxy(x+δ,target) − α·s(x+δ)/S`,平谱 FFT 相位约束保留。proxy=`resource/faat/proxy/resnet18_clean_cifar10.pth`。图 `results/kst_sdt/p02b_kstlearn_pareto.png`。
+
+### 8.1 结果(mean±std, 3 seeds)
+
+| config | ASR | SSIM | δ 峰 | s-dprime |
+|---|---|---|---|---|
+| α=0.0 (pure CE) ε=16 | 0.882±0.028 | 0.960 | 1.0 | 0.01 |
+| α=0.5 ε=16 | 0.872±0.017 | 0.970 | 1.0 | 0.00 |
+| α=2.0 ε=16 | 0.900±0.006 | 0.960 | 1.0 | 0.09 |
+| α=0.5 ε=8 (救援) | **0.222±0.220(失败)** | 0.988 | 1.0 | 0.01 |
+| pure-KST ε=16 (无 CE, P0-2) | 0.871±0.040 | 0.961 | 1.0 | **4.64** |
+| Narcissus ε=8 (1%) | 0.962±0.026 | 0.946 | 68.8 | — |
+
+### 8.2 结论:KST-Learn 失败,撞上根本墙
+
+1. **CE 项无效**:α=0.0(pure CE)ASR 0.882 ≈ pure-KST 0.871(+0.01)。CE proxy 在平谱约束下 **CE 卡在 ~6**(P(target)≈e⁻⁶=0.25%),远高于 Narcissus 的 CE~0.1-0.5(P(target)~0.89)。**平谱约束根本性限制 CE 驱动力**——Narcissus 的频率集中正是其 CE 有效的来源,KST 强制平谱削弱了它。
+2. **KST-Learn 还破坏了 (c) 4 阶签名**:s-dprime 从 pure-KST 的 4.64 掉到 ~0(δ 被 CE 优化,不再是 4 阶签名)。**既没换来可学性,又丢了 4 阶身份**——KST-Learn 是更差的实例化。
+3. **α=2.0(强 4 阶项)略好(0.900)**:4 阶签名比 CE 更能提供可学信号(平谱下),但仍 <Narcissus 0.96,且 s-dprime 仍只有 0.09(α=2.0 下 s 项被 CE 主导)。
+4. **ε=8 救援失败(0.22)**:CE 不救低 ε;平谱在低 ε 能量太小。
+5. **根本墙:flat-spectrum 隐蔽性 vs 可学性直接冲突**。Narcissus 的频率集中 = 其可学性;KST 的平谱 = 其隐蔽性。二者是同一枚硬币的两面,无法同时拿到 strict 平谱 + Narcissus 级可学性。**这不是调参问题,是结构性权衡。**
+
+### 8.3 修正后的 KST 定位(诚实)
+
+- **pure-KST 是更好的实例化**(保 (a) 平谱 + (c) 4 阶签名 s-dprime 4.64),接受 regime 限制。
+- **KST 在 ≥5% 投毒支配 Narcissus**(P0-1:ε=16 时 ASR 0.998=Narcissus + 更隐蔽 + 平谱)。
+- **1% 投毒下 KST 在 Pareto 前沿**(更隐蔽:SSIM 0.96+平谱;但 ASR ~0.87-0.90 < Narcissus 0.96),**不支配**。这是 fundamental wall,非 bug。
+- 论文定位应为"**spectrally-invisible backdoor:在 ≥5% 投毒或高隐蔽前沿上 Pareto-优于 Narcissus**",而非"全投毒区间支配"。诚实标注 1% 投毒的局限。
+
+### 8.4 唯一可能突破 1% 的路径(未来,未验证)
+**KST-Soft**:把硬 FFT 相位(strict 平谱)换成**软平谱惩罚**(允许小谱峰),换部分 (a) 换可学性。目标:小谱峰(远 <Narcissus 68.8,如 <5)+ 高 ASR。这是 flatness-vs-learnability Pareto 的探索,新机制变体,非本论文章节。当前 KST(strict 平谱)撞墙,KST-Soft 是下一步候选。
+
+### 8.5 最终下一步(修正)
+- ✅ P0-2b KST-Learn:完成,**失败**(撞 flat-spectrum vs learnability 墙)。
+- 候选:KST-Soft(软平谱,未来);或接受 KST 的 regime 定位转 P0-4 迁移 / P1 SDT。
+- P1(SDT 第二创新点)`docs/SDT-ROADMAP.md`。P2/P3 不做。
