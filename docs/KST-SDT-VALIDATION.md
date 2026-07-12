@@ -91,3 +91,43 @@ artifact:`resource/kst_sdt/{zca.pt, score_net_sigma0.1.pt, kst_delta_*.pt, narc_
 - ⬜ P0-4 CIFAR-100/GTSRB 迁移:未做(下一步)。
 - P1(SDT 第二创新点)见 `docs/SDT-ROADMAP.md`,本轮未动。
 - P2/P3 用户指定不做。
+
+---
+
+## 7. P0-2 结果 — 1% 投毒 + 3 seed(2026-07-12,诚实负向)
+
+脚本 `scripts/run_p02_lowpoison.sh`、`faat/plot_p02.py`。1% 投毒(500 张),60 epoch,seed 1/2/3。图 `results/kst_sdt/p02_lowpoison_pareto.png`,summary `p02_summary.json`。
+
+### 7.1 结果(mean±std, 3 seeds)
+
+| 触发器 | ε | ASR | BA | SSIM | δ 谱峰 |
+|---|---|---|---|---|---|
+| KST | 8/255 | **0.029±0.002(失败)** | 0.856±0.002 | 0.991 | 1.0 |
+| KST | 16/255 | 0.871±0.040 | 0.863±0.002 | 0.961 | 1.0 |
+| Narcissus | 8/255 | 0.962±0.026 | 0.853±0.009 | 0.946 | 68.8 |
+| Narcissus | 16/255 | 0.996±0.004 | 0.861±0.006 | 0.848 | 68.8 |
+
+### 7.2 关键结论(regime-dependent — 诚实)
+
+1. **KST ε=8 在 1% 投毒下完全失败(ASR 2.9%)**——平谱触发器太隐蔽(L2=0.59),500 张投毒样本不足以教会模型。5% 投毒时同样 ε=8 得 ASR 0.956,样本量是关键。
+2. **KST ε=16 在 1% 投毒下工作(ASR 0.87)但低于 Narcissus**(ε=8 时 0.96,ε=16 时 0.996)。
+3. **1% 投毒下 KST 不再 Pareto 支配**:
+   - KST ε=16: ASR 0.87, SSIM 0.961, 谱峰 1.0
+   - Narcissus ε=8: ASR 0.96, SSIM 0.946, 谱峰 68.8
+   - 两者在 Pareto 前沿(KST 更隐蔽,Narcissus 更高 ASR),**KST 不支配**。
+4. **5% vs 1% 对比**:5% 投毒时 KST ε=16 达 ASR 0.998=Narcissus + 更隐蔽 → 支配;1% 投毒时 KST ε=16 仅 0.87 < Narcissus 0.96 → 不支配。**Pareto 支配是 regime-dependent**(需 ≥5% 投毒或更高 ε)。
+
+### 7.3 根因 + 修复方向
+
+**根因**:KST 触发器优化目标是 4 阶统计量 s(x) 最大化 + 平谱约束,**没有为"网络可学性"优化**。Narcissus 是 CE-proxy 优化(直接让代理网络把触发图分到目标类)→ 更 sample-efficient,低投毒下更易学。KST 的隐蔽性(平谱+低 L2)以低投毒可学性为代价——经典 stealth-vs-learnability 权衡。
+
+**修复方向(下一步,可让 KST 在 1% 投毒下恢复竞争力)**:
+- **KST-Learn**:在 KST 触发器构造目标里加一个 learnability 项——`max s(x+δ) + λ·CE_proxy(x+δ, target)` s.t. 平谱 + L∞≤ε。即同时优化 4 阶签名(隐蔽判别)和代理 CE(可学性),平谱约束保 (a)。预期:1% 投毒下 ASR 回到 ~Narcissus 水平,同时保平谱+高 SSIM。
+- 或增 epoch(60→200)+ 增 ε(20/255)。
+- 这是 KST 从"5% 投毒支配"到"1% 投毒支配"的关键改进,优先级最高。
+
+### 7.4 更新后的下一步
+- ✅ P0-1 ε 扫荡(5%);✅ P0-3 防御评估;✅ P0-2 1% 投毒多 seed(完成,发现 regime-dependent)。
+- **🔥 P0-2b(新,最高优先)**:KST-Learn——加 learnability/CE-proxy 项,目标 1% 投毒下 ASR≥Narcissus + 平谱 + SSIM>0.95。
+- ⬜ P0-4 CIFAR-100/GTSRB 迁移。
+- P1(SDT 第二创新点)`docs/SDT-ROADMAP.md`。P2/P3 不做。
