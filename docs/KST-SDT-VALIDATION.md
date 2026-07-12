@@ -171,3 +171,45 @@ artifact:`resource/kst_sdt/{zca.pt, score_net_sigma0.1.pt, kst_delta_*.pt, narc_
 - ✅ P0-2b KST-Learn:完成,**失败**(撞 flat-spectrum vs learnability 墙)。
 - 候选:KST-Soft(软平谱,未来);或接受 KST 的 regime 定位转 P0-4 迁移 / P1 SDT。
 - P1(SDT 第二创新点)`docs/SDT-ROADMAP.md`。P2/P3 不做。
+
+---
+
+## 9. 方法论纠正 + Clean-label 对比 baseline(2026-07-12,**关键正面结果**)
+
+### 9.1 之前 P0-2/P0-2b 的错(已作废)
+P0-2/P0-2b 用了 **dirty-label**(投毒非目标类、改标签)+ 对比 Narcissus。但 baseline 论文是 **clean-label**(投毒目标类、标签保持)。威胁模型错配 + 对比对象错 → "1% 投毒失败 / flat-spectrum vs learnability 墙"的结论**是方法论 artifact,非真墙**。作废。
+
+### 9.2 正确口径(对齐 baseline Table 1)
+- **clean-label**:投毒目标类 500 张,加触发器,标签保持目标类。
+- **Component A 样本选择**:复用 baseline 的 `save_metric_10_res`(forget / res-linear)。
+- **baseline 管线**:ResNet18, SGD[60,90] γ0.1, 300ep, batch128, Pad+Flip+RandomCrop aug, ASR=非目标类测试图+触发→target(末20均)。
+- 实现:KST 作为 `--backdoor_type kst` 集成进 `train_backdoor.py`(`Add_Clean_Label_Train_Trigger_kst`/`Add_Test_Trigger_kst`,仿 NAR 直接加 delta)。继承全部 baseline 管线,只换触发器。
+- 对比对象:**baseline Table 1 的 4 个触发器(Badnets-C/Blended-C/MultiBpp-RGB/MultiBpp-B)+ Component A/B/C**,不是 Narcissus。
+
+### 9.3 最终结果(CIFAR-10, 1% clean-label, 300ep, seed1, ASR末20均 %)
+
+| selection | **KST best** | Badnets-C | Blended-C | MultiBpp-RGB | MultiBpp-B |
+|---|---|---|---|---|---|
+| random | 27.00 (ε16) | 36.37 | 49.87 | 30.95 | 8.81 |
+| forget | **86.15 (ε16)** ✅ | 64.25 | 70.48 | 81.18 | 80.95 |
+| res/linear | **92.59 (ε20)** ✅ | 68.78 | 75.86 | 85.09 | 89.70 |
+
+KST 详细:ε16 random 27.00/BA94.96、ε16 forget 86.15/BA94.63、ε16 res/linear 80.47/BA94.56、ε20 res/linear 92.59/BA94.74。
+
+图:`results/kst_sdt/cleanlabel_vs_baseline.png`。summary:`cleanlabel_summary.json`。
+
+### 9.4 结论(反转 P0-2b 的"墙")
+1. **KST + Component A 在 forget 上超过 baseline 全部触发器**(86.15 vs 最优 MultiBpp-RGB 81.18,+4.97)。
+2. **KST ε20 + Component A 在 res/linear 上超过 baseline 全部触发器**(92.59 vs 最优 MultiBpp-B 89.70,+2.89)。
+3. BA ~94.7% 持平 baseline(~94.5%)。
+4. **隐蔽性**:KST 平谱(δ峰=1.0)+ SSIM 0.94(ε20)/0.96(ε16);baseline 4 个触发器全部频域有结构(无平谱)。KST 在"频域不可见"轴上独家。
+5. **random(无 Component A)下 KST 27.00 在 baseline 区间内**(8.81-49.87,中游)——与 baseline 同模式:无 Component A 选样则弱。
+
+### 9.5 核心叙事(可写论文)
+KST 是一个 **clean-label 后门触发器机制**:在 baseline 的同一套管线 + 同一套 Component A 样本选择下,KST 在 forget/res-linear 选择上 ASR 超过 baseline 4 个触发器全部,同时 δ 频谱平坦(频域防御不可见)、SSIM 与 baseline 持平或更优。**之前 P0-2b 的"flat-spectrum vs learnability 墙"是 dirty-label 错配的 artifact——clean-label + Component A 下不成立。**
+
+### 9.6 下一步
+- 多 seed(seed 2/3)确认 KST > baseline 稳健。
+- KST ε 扫荡在 clean-label + Component A 下的 Pareto(ε16/20 已超 baseline,补 ε12/24)。
+- P0-4 迁移 CIFAR-100/GTSRB。
+- P1 SDT 第二创新点(`docs/SDT-ROADMAP.md`)。
