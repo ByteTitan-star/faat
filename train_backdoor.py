@@ -111,7 +111,8 @@ parser.add_argument('--dataset', default='cifar10', help='dataset')
 parser.add_argument('--num_levels', type=str, default="36:60:12")
 parser.add_argument('--poison_rate', type=float, default=0.01)
 parser.add_argument('--res_rate', type=float, default=1)
-parser.add_argument('--backdoor_type', default='narcissus', choices=['badnets', 'blend', 'quantize', 'narcissus', 'siba', 'faat', 'faatb', 'icit', 'rkt', 'pat', 'feast', 'style', 'icaf', 'opal', 'orbit'])
+parser.add_argument('--backdoor_type', default='narcissus', choices=['badnets', 'blend', 'quantize', 'narcissus', 'siba', 'faat', 'faatb', 'icit', 'rkt', 'pat', 'feast', 'style', 'icaf', 'opal', 'orbit', 'kst'])
+parser.add_argument('--kst_delta_path', type=str, default='./resource/kst_sdt/kst_delta_r4_eps0.0627.pt', help='KST: path to pre-built flat-spectrum 4th-order delta [3,32,32]')
 parser.add_argument('--select_epoch', type=int, default=10, help='epoch which to calculate the stats')
 parser.add_argument('--num_classes', type=int, default=10, help='num of the classes')
 parser.add_argument('--blend_size', type=int, default=32, help='the size of blend image')
@@ -230,6 +231,8 @@ elif args.backdoor_type == 'narcissus':
     if os.path.exists(save_path):
         temp_trigger = torch.load(save_path)
     trigger = temp_trigger.squeeze(0)
+elif args.backdoor_type == 'kst':
+    trigger = torch.load(args.kst_delta_path, map_location='cpu').float()
 
 total_poison = int(len(train_dataset) * args.poison_rate)
 
@@ -305,6 +308,9 @@ if args.backdoor_type == 'quantize':
 elif args.backdoor_type == 'narcissus':
     poison_train_set = Add_Clean_Label_Train_Trigger_NAR(train_dataset, trigger, args.y_target, poison_inds)
     poison_test_set = Add_Test_Trigger_NAR(test_dataset, trigger, args.y_target)
+elif args.backdoor_type == 'kst':
+    poison_train_set = Add_Clean_Label_Train_Trigger_kst(train_dataset, args.y_target, poison_inds, trigger)
+    poison_test_set = Add_Test_Trigger_kst(test_dataset, args.y_target, trigger)
 elif args.backdoor_type == 'siba':
     args.save_trigger = "./resource/save_trigger_" + str(num_classes) + "_" + str(args.y_target)
     poison_train_set = Add_Clean_Label_Train_Trigger_siba(train_dataset, args.y_target, poison_inds, args.save_trigger)

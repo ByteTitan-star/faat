@@ -433,7 +433,37 @@ def Add_Clean_Label_Train_Trigger_NAR(dataset, trigger, target, class_order):
                 temp_img[j, :, :] = torch.clamp(temp_img[j, :, :], 0, 1)
             dataset_.append((temp_img, target, 1))
         else:
-            dataset_.append((img, data[1], 0))           
+            dataset_.append((img, data[1], 0))
+    return dataset_
+def Add_Clean_Label_Train_Trigger_kst(dataset, target, class_order, delta):
+    """KST (4th-order flat-spectrum) trigger: add pre-built delta to target-class
+    poison images. Clean-label (label stays target; poison_inds are target-class
+    per the selection logic in train_backdoor.py). Mirrors NAR without the
+    per-channel checkboard (KST delta is already optimised)."""
+    poison_set = set(int(i) for i in class_order)
+    delta = delta.float()
+    dataset_ = list()
+    for i in range(len(dataset)):
+        data = dataset[i]
+        img = data[0]
+        if i in poison_set:
+            temp_img = torch.clamp(img * 1 + delta.to(img.device), 0, 1)
+            dataset_.append((temp_img, target, 1))
+        else:
+            dataset_.append((img, data[1], 0))
+    return dataset_
+def Add_Test_Trigger_kst(dataset, target, delta):
+    """KST test trigger: add delta to NON-target test images, label target (ASR)."""
+    delta = delta.float()
+    dataset_ = list()
+    for i in range(len(dataset)):
+        data = dataset[i]
+        img = data[0]
+        label = data[1]
+        if label == target:
+            continue
+        temp_img = torch.clamp(img * 1 + delta.to(img.device), 0, 1)
+        dataset_.append((temp_img, target))
     return dataset_
 def Add_Clean_Label_Train_Trigger_siba(dataset, target, class_order, save_trigger):
     uap = np.load('{}/uap.npy'.format(save_trigger))
