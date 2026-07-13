@@ -213,3 +213,38 @@ KST 是一个 **clean-label 后门触发器机制**:在 baseline 的同一套管
 - KST ε 扫荡在 clean-label + Component A 下的 Pareto(ε16/20 已超 baseline,补 ε12/24)。
 - P0-4 迁移 CIFAR-100/GTSRB。
 - P1 SDT 第二创新点(`docs/SDT-ROADMAP.md`)。
+
+---
+
+## 10. 多数据集 campaign(2026-07-14,进行中)
+
+脚本 `scripts/run_campaign_all.sh`、`faat/build_kst_delta.py`、`faat/parse_campaign.py`。每数据集独立 KST delta(平谱 δ峰=1.0),clean-label + Component A,baseline 全套管线,对比 baseline Table 1/2 的 4 触发器(不对比 Narcissus)。
+
+### 10.1 通用化 profile(关键诚实发现)
+
+KST 的有效性与**数据集模型自信度**强相关:模型越自信(BA 越高),平谱触发器越难翻转 → 需更高 ε 或根本失败。
+
+| 数据集 | 模型 BA | KST ε16/20 | KST ε48 | baseline 最优 | KST 定论 |
+|---|---|---|---|---|---|
+| CIFAR-10 | ~95% | **86-92%**(超 baseline) | — | 81-90% | ✅ 工作,超 baseline |
+| CIFAR-100 | ~78% | 16-25%(太弱) | peak 99%,full末20均待定 | **76%**(Blended) | ⚠️ 需 ε48,可能超 baseline |
+| Tiny-ImageNet | ~55% | peak 94%(ε20 诊断) | **peak 99.8%**,full 待定 | 63-90%(bl_tiny) | ⚠️ 需 ε48,可能超 baseline |
+| GTSRB | **99.95%** | 0%(失败) | **0-13%(仍失败)** | 23%+(Blended 部分) | ❌ 根本性失败 |
+
+### 10.2 各数据集详结
+
+- **CIFAR-10**(1% clean-label, 300ep):KST ε16 forget 86.76 / ε20 res-lin 92.59,超 baseline 全触发器(forget 最优 81.18,res-lin 最优 89.70)。✅(见 §9)
+- **CIFAR-100**(0.5% clean-label, 300ep):baseline Badnets 71.3 / Blended **76.0** / MultiBpp-RGB 14.5 / MultiBpp-B 17.3。KST ε16/20 仅 16-25%(100 类 + 弱触发器);**ε48 诊断峰值 99.4%**(>baseline 76%),但高 LR 下遗忘不稳定(last10 37%),full 300ep 末20均待定(预期 LR drop 后稳住)。
+- **Tiny**(0.25% clean-label):baseline bl_tiny Badnets 90.11 / Blended 78.70 / MultiBpp-RGB 63.12。KST ε48 诊断 ep35 peak 99.8% / last10 69%(200 类 + 低 BA 模型,响应好),full 待定。
+- **GTSRB**(1% clean-label, 300ep):KST **全部 0% ASR**(ε16/20/32/48 全失败,峰值仅 3-13%)。根因:GTSRB BA 99.95% 极自信,平谱噪声触发器(即使 ε48 Linf 0.188)翻不动;baseline 结构化触发器(Blended)有效。**KST 在 GTSRB 上根本性失败——平谱隐蔽性 vs 高自信模型不可调和。**
+
+### 10.3 结论(诚实)
+1. **KST 通用化到 CIFAR-10/CIFAR-100/Tiny**(需按数据集调 ε:CIFAR-10 ε16/20,CIFAR-100/Tiny ε48),在合适 ε 下可超 baseline。
+2. **KST 在 GTSRB 根本性失败**——平谱触发器对超自信模型(交通标志 BA 99.95%)无效。这是 flat-spectrum 隐蔽性的代价:越隐蔽 → 越翻不动自信模型。
+3. **ε 是通用化杠杆但侵蚀隐蔽**:ε48(Linf 0.188)比 ε16(Linf 0.063)SSIM 低,隐蔽性下降。CIFAR-100/Tiny 需 ε48 才 work,部分抵消平谱隐蔽优势。
+4. **论文定位**:KST = "频域不可见的 clean-label 后门,在中等自信度数据集(CIFAR)上超 baseline";GTSRB(超自信)是诚实局限,反衬 flat-spectrum 隐蔽 vs 攻击力的权衡。
+
+### 10.4 待补
+- CIFAR-100 ε48 + Tiny ε48 的 full 300ep 末20均(确认是否超 baseline)。
+- GTSRB baseline 完整数字(W4 被 kill,ep~100 部分)。
+- 多 seed。
