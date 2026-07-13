@@ -159,15 +159,17 @@ class KST:
         return total
 
     def build(self, x_clean, mu, W, eps, steps=400, batch=512, device="cuda",
-              proxy=None, target=0, alpha=0.0, S=500.0):
+              proxy=None, target=0, alpha=0.0, S=500.0, cache_tag=""):
         """Optimise FFT phases (flat magnitude -> spectrally flat delta).
 
         Objective (KST-Learn when proxy given):
             min  CE_proxy(x+delta, target)  -  alpha * s(x+delta) / S
         s.t. flat magnitude spectrum (hard, via phase parameterisation) + Linf=eps.
-        proxy=None -> original KST (pure s maximisation)."""
+        proxy=None -> original KST (pure s maximisation).
+        cache_tag: optional discriminator in the cache filename (e.g. dataset name)."""
         use_ce = proxy is not None
-        cache = os.path.join(RES, f"kst_delta_r{self.r}_eps{eps:.4f}_a{alpha}_ce{int(use_ce)}.pt")
+        tag = (cache_tag + "_") if cache_tag else ""
+        cache = os.path.join(RES, f"kst_delta_{tag}r{self.r}_eps{eps:.4f}_a{alpha}_ce{int(use_ce)}.pt")
         if os.path.exists(cache):
             return torch.load(cache, map_location=device)
         x = x_clean.to(device)
