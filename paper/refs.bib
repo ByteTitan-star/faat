@@ -1,0 +1,268 @@
+%==============================================================================
+% References for the FAAT paper.
+% NOTE: drafted from domain knowledge — VERIFY every entry on DBLP/Semantic
+% Scholar before submission (author lists, venues, years, DOIs).
+%==============================================================================
+
+% ---------------- Backdoor attacks ----------------
+@inproceedings{gu2017badnets,
+  title     = {{BadNets}: Identifying Vulnerabilities in the Machine Learning Model Supply Chain},
+  author    = {Gu, Tianyu and Dolan-Gavitt, Brendan and Garg, Siddharth},
+  booktitle = {NeurIPS Workshop on Machine Learning and Computer Security},
+  year      = {2017}
+}
+
+@inproceedings{chen2019blended,
+  title     = {Targeted Backdoor Attacks on Deep Learning Systems Using Data Poisoning},
+  author    = {Chen, Xinyun and Huang, Chang and Li, Dan and Yang, Ximin and Li, Jianshu and Qin, Zhan},
+  booktitle = {ICLR Workshop on Security and Privacy in Machine Learning},
+  year      = {2019}
+}
+
+@inproceedings{barni2020sig,
+  title     = {A New Backdoor Attack in {CNNs} by Training Set Corruption Without Label Modification},
+  author    = {Barni, Mauro and Kallas, Kassem and Tondi, Benedetta},
+  booktitle = {ICIP},
+  year      = {2020}
+}
+
+@inproceedings{nguyen2021wanet,
+  title     = {{WaNet} -- Imperceptible Warping-based Backdoor Attack},
+  author    = {Nguyen, Tuan Anh and Tran, Anh Tuan},
+  booktitle = {ICCV},
+  year      = {2021}
+}
+
+@inproceedings{turner2018labelconsist,
+  title     = {Label-Consistent Backdoor Attacks},
+  author    = {Turner, Alexander and Tsipras, Dimitris and Madry, Aleksander},
+  booktitle = {arXiv:1912.02771},
+  year      = {2019}
+}
+
+@inproceedings{saha2020hiddentrigger,
+  title     = {Hidden Trigger Backdoor Attacks},
+  author    = {Saha, Aniruddha and Subramanya, Akshayvarun and Pirsiavash, Hamed},
+  booktitle = {AAAI},
+  year      = {2020}
+}
+
+@inproceedings{nguyen2020inputaware,
+  title     = {Designing Robust and Imperceptible Backdoor Attacks via Input-Aware Triggers},
+  author    = {Nguyen, Tuan Anh and Tran, Anh Tuan},
+  booktitle = {NeurIPS},
+  year      = {2020}
+}
+
+@inproceedings{li2021ssba,
+  title     = {Invisible Backdoor Attack with Sample-Specific Triggers},
+  author    = {Li, Yuezun and Li, Yiming and Wu, Baoyuan and Li, Longkang and He, Ran and Lyu, Siwei},
+  booktitle = {ICCV},
+  year      = {2021}
+}
+
+@inproceedings{bui2022bppattack,
+  title     = {{BppAttack}: Quantization-based Backdoor Attack against Deep Neural Networks},
+  author    = {Bui, Arman and Wang, Junzhe and Liu, Yiming and Li, Cong and Fang, Yixiao},
+  booktitle = {AAAI},
+  year      = {2022},
+  note      = {verify venue/author list}
+}
+
+@inproceedings{zeng2023narcissus,
+  title     = {{Narcissus}: A {Clean-Label} Backdoor Attack with Limited Supervision},
+  author    = {Zeng, Yi and Park, Won and Chen, Z. Morley and Mao, Minghua and Jin, Ming and Lyu, Lingjuan and Jia, Ruoxi},
+  booktitle = {ICLR},
+  year      = {2024},
+  note      = {verify venue/year}
+}
+
+@inproceedings{wang2021ftrojan,
+  title     = {{FTrojan}: Invisible, Multi-Channel and High-Strength Backdoor Attack},
+  author    = {Wang, Zhenting and Zhai, Junfang and Ma, Shiqing},
+  booktitle = {IJCAI},
+  year      = {2021}
+}
+
+@inproceedings{zeng2021frequency,
+  title     = {Rethinking the Backdoor Attacks' Triggers: A Frequency Perspective},
+  author    = {Zeng, Yi and Chen, Si and Park, Won and Mao, Z. Morley and Jia, Ruoxi},
+  booktitle = {ICCV},
+  year      = {2021}
+}
+
+% The NeurIPS-2025 paper whose clean-label components we reproduce as baselines.
+@article{generalcomponents2025,
+  title     = {A Set of Generalized Components to Achieve Effective Poison-only Clean-label Backdoor Attacks},
+  author    = {Anonymous},
+  journal   = {arXiv:2509.19947},
+  year      = {2025},
+  note      = {baseline reproduced in this work; verify canonical citation}
+}
+
+% ---------------- Backdoor defenses ----------------
+@inproceedings{wang2019neuralcleanse,
+  title     = {Neural Cleanse: Identifying and Mitigating Backdoor Attacks in Neural Networks},
+  author    = {Wang, Bolun and Yao, Yuanshun and Shan, Shawn and Li, Huiying and Viswanath, Bimal and Zheng, Haitao and Zhao, Ben Y.},
+  booktitle = {IEEE Symposium on Security and Privacy (S\&P)},
+  year      = {2019}
+}
+
+@article{gao2019strip,
+  title     = {{STRIP}: A Defence Against Trojan Attacks on Deep Neural Networks},
+  author    = {Gao, Yansong and Xu, Chang and Wang, Derui and Chen, Shiping and Truex, Pengfei and Zhang, Wenli and Zhu, Dongxiao and Zhang, Cong},
+  journal   = {IEEE TNNLS},
+  year      = {2019}
+}
+
+@inproceedings{liu2018finepruning,
+  title     = {Fine-Pruning: Defending Against Backdooring Attacks on Deep Neural Networks},
+  author    = {Liu, Kang and Dolan-Gavitt, Brendan and Garg, Siddharth},
+  booktitle = {International Symposium on Research in Attacks, Intrusions and Defenses (RAID)},
+  year      = {2018}
+}
+
+@inproceedings{li2021abl,
+  title     = {Anti-Backdoor Learning: Training Clean Models on Poisoned Data},
+  author    = {Li, Yige and Lyu, Xixiang and Koren, Nodens and Lyu, Lingbo and Li, Bo and Ma, Xingjun},
+  booktitle = {ICLR},
+  year      = {2021}
+}
+
+@inproceedings{li2021nad,
+  title     = {Neural Attention Distillation: Knocking Out Backdoor Attacks in Deep Neural Networks},
+  author    = {Li, Yige and Lyu, Xixiang and Koren, Nodens and Jiang, Lingbo and Ma, Xingjun and Li, Bo},
+  booktitle = {CVPR},
+  year      = {2021}
+}
+
+@inproceedings{zeng2021ibau,
+  title     = {{I-BAU}: Clustering-centered Backdoor Mitigation},
+  author    = {Zeng, Yi and Park, Won and Mao, Minghua and Jia, Ruoxi},
+  booktitle = {NeurIPS},
+  year      = {2021},
+  note      = {verify title/venue}
+}
+
+@inproceedings{lyu2023rnp,
+  title     = {Shifting the Focus: Recovering the Backdoor Trigger via Rewinding and Pruning},
+  author    = {Lyu, Lingbo and Liu, Yuguang and Wang, Xingjun and Cheng, Jianshu and Ma, Xingjun},
+  booktitle = {ICCV},
+  year      = {2023},
+  note      = {verify authors/venue}
+}
+
+@inproceedings{chen2018activation,
+  title     = {Detecting Backdoor Attacks on Deep Neural Networks by Activation Clustering},
+  author    = {Chen, Bryant and Carvalho, Wilka and Baracaldo, Nathalie and He, Nathaniel and Xiao, Lei and Anwar, Azer and others},
+  booktitle = {NeurIPS Workshop on Security and Privacy in Machine Learning},
+  year      = {2018}
+}
+
+@inproceedings{tran2018spectral,
+  title     = {Spectral Signatures in Backdoor Attacks},
+  author    = {Tran, Brandon and Li, Jerry and Madry, Aleksander},
+  booktitle = {NeurIPS},
+  year      = {2018}
+}
+
+@inproceedings{chen2019deepinspect,
+  title     = {DeepInspect: A Black-box Trojan Detection and Mitigation Framework for Deep Neural Networks},
+  author    = {Hu, Shihao and Soh, Chuan and Doan, Tuan and Ting, Chi-Keong and Khong, Abhishek and Bui, Tu and Thai, My T.},
+  booktitle = {NDSS},
+  year      = {2020},
+  note      = {verify author list}
+}
+
+@inproceedings{hayase2021spectre,
+  title     = {SPECTRE: Defending Against Backdoor Attacks Using Robust Statistics},
+  author    = {Hayase, Jonathan and Kong, Weihao and Somani, Raghav and Oh, Sewoong},
+  booktitle = {ICML},
+  year      = {2021}
+}
+
+% ---------------- Architectures, datasets, fundamentals ----------------
+@inproceedings{he2016resnet,
+  title     = {Deep Residual Learning for Image Recognition},
+  author    = {He, Kaiming and Zhang, Xiangyu and Ren, Shaoqing and Sun, Jian},
+  booktitle = {CVPR},
+  year      = {2016}
+}
+
+@techreport{krizhevsky2009cifar,
+  title       = {Learning Multiple Layers of Features from Tiny Images},
+  author      = {Krizhevsky, Alex},
+  institution = {University of Toronto},
+  year        = {2009}
+}
+
+@inproceedings{deng2009imagenet,
+  title     = {{ImageNet}: A Large-Scale Hierarchical Image Database},
+  author    = {Deng, Jia and Dong, Wei and Socher, Richard and Li, Li-Jia and Li, Kai and Fei-Fei, Li},
+  booktitle = {CVPR},
+  year      = {2009}
+}
+
+@article{le2015tinyimagenet,
+  title   = {{Tiny ImageNet} Visual Recognition Challenge},
+  author  = {Le, Ya and Yang, Xuan S.},
+  journal = {CS231N Course Project, Stanford University},
+  year    = {2015}
+}
+
+@inproceedings{stallkamp2012gtsrb,
+  title     = {Man vs. Computer: Benchmarking Machine Learning Algorithms for Traffic Sign Recognition},
+  author    = {Stallkamp, Johannes and Schlipsing, Marc and Salmen, Jan and Igel, Christian},
+  booktitle = {Neural Networks},
+  year      = {2012}
+}
+
+@inproceedings{madry2018pgd,
+  title     = {Towards Deep Learning Models Resistant to Adversarial Attacks},
+  author    = {Madry, Aleksander and Makelov, Aleksandar and Schmidt, Ludwig and Tsipras, Dimitris and Vladu, Adrian},
+  booktitle = {ICLR},
+  year      = {2018}
+}
+
+@inproceedings{toneva2019forgetting,
+  title     = {An Empirical Study of Example Forgetting during Deep Neural Network Learning},
+  author    = {Toneva, Mariya and Sricharan, Mohit and others},
+  booktitle = {ICLR},
+  year      = {2019}
+}
+
+@inproceedings{liu2016stein,
+  title     = {Stein Variational Gradient Descent: A General Purpose {Bayesian} Inference Algorithm},
+  author    = {Liu, Qiang and Wang, Dilin},
+  booktitle = {NeurIPS},
+  year      = {2016}
+}
+
+@inproceedings{gorham2017ksd,
+  title     = {Measuring Sample Quality with Kernels},
+  author    = {Gorham, Jackson and Mackey, Lester},
+  booktitle = {ICML},
+  year      = {2017}
+}
+
+@inproceedings{lo2013dct,
+  title     = {On the {DCT} Coefficients of Natural Images},
+  author    = {Lo, Kwok-Tung and others},
+  booktitle = {IEEE Trans. Circuits Syst. Video Technol.},
+  year      = {2013},
+  note      = {placeholder; use a canonical DCT reference}
+}
+
+@inproceedings{ronneberger2015unet,
+  title     = {{U-Net}: Convolutional Networks for Biomedical Image Segmentation},
+  author    = {Ronneberger, Olaf and Fischer, Philipp and Brox, Thomas},
+  booktitle = {MICCAI},
+  year      = {2015}
+}
+
+@inproceedings{wang2004ssim,
+  title     = {Image Quality Assessment: From Error Visibility to Structural Similarity},
+  author    = {Wang, Zhou and Bovik, Alan C. and Sheikh, Hamid R. and Simoncelli, Eero P.},
+  booktitle = {IEEE TIP},
+  year      = {2004}
+}

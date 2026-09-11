@@ -1,0 +1,17 @@
+method,group,selection,ASR,BA,SSIM,L2,spec_peak
+KST ε16 random,KST,random,27.0,94.96,0.961,1.33,1.0
+KST ε16 forget,KST,forget,86.76,94.68,0.961,1.33,1.0
+KST ε16 res/linear,KST,res/linear,80.47,94.56,0.961,1.33,1.0
+KST ε20 res/linear,KST,res/linear,92.59,94.74,0.94,1.71,1.0
+Badnets-C random,baseline,random,36.37,,,,
+Blended-C random,baseline,random,49.87,,,,
+MultiBpp-RGB random,baseline,random,30.95,,,,
+MultiBpp-B random,baseline,random,8.81,,,,
+Badnets-C forget,baseline,forget,64.25,,,,
+Blended-C forget,baseline,forget,70.48,,,,
+MultiBpp-RGB forget,baseline,forget,81.18,,,,
+MultiBpp-B forget,baseline,forget,80.95,,,,
+Badnets-C res/linear,baseline,res/linear,68.78,,,,
+Blended-C res/linear,baseline,res/linear,75.86,,,,
+MultiBpp-RGB res/linear,baseline,res/linear,85.09,,,,
+MultiBpp-B res/linear,baseline,res/linear,89.7,,,,

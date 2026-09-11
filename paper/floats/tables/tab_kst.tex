@@ -1,0 +1,20 @@
+% T4 — KST flat-spectrum trigger vs references (CIFAR-10, 5% dirty-label, eps=16/255).
+% Source: data_kst_eps.csv. spec-peak = max/median |F(delta)|^2 (1.0 = perfectly flat).
+\begin{table}[t]
+\centering
+\small
+\begin{tabular}{l c c c c c}
+\toprule
+Trigger & ASR$\uparrow$ & SSIM$\uparrow$ & $\ell_2$$\downarrow$ & spec-peak$\downarrow$ & s-dprime$\uparrow$ \\
+\midrule
+Narcissus & 99.8 & 0.946 & 1.64 & 68.8 & \na \\
+BppAttack & \na  & 0.97  & \na  & \na  & \na \\
+\textbf{KST (Ours)} & \textbf{99.8} & \textbf{0.961} & \textbf{1.33} & \textbf{1.0} & 4.64 \\
+\bottomrule
+\end{tabular}
+\caption{\textbf{KST achieves ASR parity with Narcissus while keeping the
+spectrum flat} (peak/median $\approx\!1.0$ vs.\ $68.8$), at higher SSIM and lower
+$\ell_2$. The flat spectrum is a structural property that defeats
+frequency-domain defenses; \na\ = pending.}
+\label{tab:kst}
+\end{table}

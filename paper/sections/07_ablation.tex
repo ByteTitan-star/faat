@@ -1,0 +1,30 @@
+\section{Ablations and Analysis}
+\label{sec:ablation}
+
+\input{floats/tables/tab_ablation}
+\input{floats/figures_tex/f6_ablation}
+\input{floats/figures_tex/f7_convergence}
+
+\paragraph{Role of each component.}
+Table~\ref{tab:ablation} removes FAAT's components one at a time (CIFAR-10,
+$\ell_2\!=\!1.5$). The bare global direction ($\dglobal$ only, i.e.\ a Narcissus
+trigger) already reaches $90.3\%$ ASR---confirming $\dglobal$ supplies the bulk
+of the backdoor signal. Adding $\dadapt$ and the full pipeline raises ASR to
+$93.6\%$ \emph{and} improves stealth (SS-AUC $0.385\!\to\!0.433$). Removing
+$\Lalign$ \emph{raises} ASR to $96.4\%$ but \emph{lowers} SS-AUC to $0.374$:
+$\Lalign$ is therefore a \emph{stealth} component that trades a little ASR for
+better defense evasion, exactly as designed (Sec.~\ref{sec:method}). SSIM is
+stable ($0.95$) across variants.
+
+\paragraph{Training dynamics.}
+Figure~\ref{fig:conv} shows ASR and BA over $300$ epochs. FAAT crosses
+$80\%$ ASR within the first $\sim$$16$ epochs and settles at $93.6\%$, while BA
+stays at the clean-model level throughout---there is no benign-accuracy dip to
+signal the attack.
+
+\paragraph{Budget sensitivity.}
+On CIFAR-10 the $\ell_2$ budget $\{0.9,1.2,1.5\}$ traces a smooth ASR--SSIM
+frontier ($76.1 / 88.6 / 93.6\%$ at SSIM $0.98/0.97/0.95$, Fig.~\ref{fig:pareto});
+$\sigma_{\asr}\!\le\!2.5$ across 3 seeds (see supp.).
+Full per-dataset, per-seed numbers and the adaptive-generator ablation are in
+the supplement.

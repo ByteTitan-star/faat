@@ -20,3 +20,17 @@ logs/
 data100/
 data_tiny/
 tmp/
+
+# 本地 TeX Live 树(222MB, 仅本机用, 见 paper/README.md) — 不进 git
+.texmf/
+# LaTeX 编译产物(make 可再生; main.pdf/supplement.pdf 保留作论文快照)
+paper/*.aux
+paper/*.bbl
+paper/*.blg
+paper/*.brf
+paper/*.fls
+paper/*.fdb_latexmk
+paper/*.out
+paper/*.synctex.gz
+# Overleaf 打包 zip(由 paper/ 源文件再生)
+paper/faat_cvpr_overleaf.zip

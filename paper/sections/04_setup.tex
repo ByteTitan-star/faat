@@ -1,0 +1,34 @@
+\section{Experimental Setup}
+\label{sec:setup}
+
+\paragraph{Datasets.}
+CIFAR-10/100~\cite{krizhevsky2009cifar}, GTSRB~\cite{stallkamp2012gtsrb} (43
+classes), and Tiny-ImageNet~\cite{le2015tinyimagenet,deng2009imagenet} (200
+classes).
+We evaluate at \emph{paper-matching} poison rates: $1\%$ (CIFAR-10, GTSRB),
+$0.5\%$ (CIFAR-100), and $0.25\%$ (Tiny-ImageNet); i.e.\ $500$, $250$,
+$\sim$$189$ and $\sim$$550$ poisoned clean-label samples respectively.
+
+\paragraph{Victim and baselines.}
+ResNet-18~\cite{he2016resnet}, trained $300$ epochs, SGD (lr $0.1$, momentum
+$0.9$, weight decay $5\!\times\!10^{-4}$, milestones $[60,90]$, $\gamma\!=\!0.1$),
+batch $128$, seed reported per run (3 seeds for FAAT). Baselines: BadNets-C,
+Blended-C, MultiBpp-RGB, MultiBpp-B~\cite{generalcomponents2025} with all eight
+selection criteria (we report each attack's best selection); and the stealth
+references Narcissus~\cite{zeng2023narcissus} and BppAttack~\cite{bui2022bppattack}.
+
+\paragraph{Metrics.}
+$\asr$ (attack success rate), $\ba$ (benign accuracy), $\ell_2$ and
+SSIM~\cite{wang2004ssim} (stealth). Defense evasion:
+AC-AUC / SS-AUC~\cite{chen2018activation,tran2018spectral} (detection AUC;
+closer to $0.5$ $=$ undetectable, reported as $1{-}$AUC so \emph{lower is more
+evasive}), STRIP TPR@5\%~\cite{gao2019strip} (lower $=$ evades), and
+Fine-Pruning~\cite{liu2018finepruning} ASR @0.9 pruning rate (higher $=$ survives).
+All numbers are means over 3 seeds unless stated; every value is traceable to a
+training log, and pending experiments are marked \na.
+
+\paragraph{Implementation.}
+FAAT is implemented in PyTorch on top of the public clean-label
+codebase~\cite{generalcomponents2025}; $\dglobal$ uses a self-contained Narcissus
+engine (no external \texttt{.pth}), $\dadapt$ uses a $4$-layer U-Net with DCT
+projection. All experiments run on a shared RTX-3090 server.

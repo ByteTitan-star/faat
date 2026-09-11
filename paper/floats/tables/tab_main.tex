@@ -1,0 +1,23 @@
+% T1 — Main results: ASR (%) across 4 datasets. BA within 1% of clean model in all rows (see supp.).
+% Sources: data_baseline_best.csv (CIFAR-10), docs/PAPER-BASELINES.md, docs/GTSRB-BASELINES.md, data_faat_summary.csv
+\begin{table*}[t]
+\centering
+\small
+\setlength{\tabcolsep}{6pt}
+\begin{tabular}{l c c c c c}
+\toprule
+Dataset (poison rate) & BadNets-C & Blended-C & MultiBpp-RGB & MultiBpp-B & \textbf{FAAT (Ours)} \\
+\midrule
+CIFAR-10  (1\%)    & 70.6 & 75.9 & 85.1 & \underline{89.7} & \textbf{93.6} \\
+CIFAR-100 (0.5\%)  & \underline{85.1} & 77.5 & \na  & \na  & \textbf{98.5} \\
+Tiny-IN   (0.25\%) & 39.0 & \underline{43.9} & \na  & \na  & \textbf{95.8} \\
+\bottomrule
+\end{tabular}
+\caption{\textbf{Attack success rate (\%)} of FAAT vs.\ four clean-label
+baselines (best reproduced selection per attack; \underline{underlined} = strongest
+baseline in that row). FAAT is the best method on every dataset, by $+3.9$ to
+$+51.9$ over the strongest reproduced baseline. Benign accuracy is within $1$
+point of the clean model in all rows (Suppl.). The high-confidence GTSRB regime
+is studied separately in Sec.~\ref{sec:gtsrb}. \na\ = pending experiment.}
+\label{tab:main}
+\end{table*}

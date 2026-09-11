@@ -1,0 +1,3 @@
+variant,dataset,L2,seed,ASR,BA,SSIM,AC_AUC,SS_AUC
+w/o L_align (Narcissus-only),cifar10,1.5,1,96.37,94.66,0.95,0.251,0.374
+Full FAAT,cifar10,1.5,mean3,93.6,94.75,0.9499,0.25,0.433

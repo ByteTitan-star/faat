@@ -1,0 +1,28 @@
+\section{Defense Evasion}
+\label{sec:defense}
+
+\input{floats/tables/tab_defense}
+\input{floats/figures_tex/f5_defense}
+
+\paragraph{Sample-filtering defenses fail on FAAT.}
+Table~\ref{tab:defense} reports FAAT's defense-evasion profile (3-seed means).
+Activation Clustering~\cite{chen2018activation} and Spectral
+Signatures~\cite{tran2018spectral} stay at or below the random level on
+CIFAR-10/100/Tiny ($1{-}$AUC $\le 0.43$, i.e.\ the detector cannot separate
+poisoned from clean features)---this is the intended effect of $\Lalign$
+(Eq.~\ref{eq:align}). STRIP~\cite{gao2019strip} is bypassed (TPR@5\%
+$\le 0.15$), and Fine-Pruning~\cite{liu2018finepruning} at the $0.9$ pruning
+rate leaves $\ge\!71\%$ ASR on three of four datasets. GTSRB is the hardest case
+(larger $\ell_2\!=\!3.5$ budget on a $43$-class, BA$\approx\!100\%$ task), where
+AC/SS rise to $\sim\!0.75$---still better than visible-trigger baselines.
+
+\paragraph{The Component-A selection is itself hard to defend.}
+Figure~\ref{fig:defense} compares post-defense ASR for the res$_x^2$ selection
+we adopt vs.\ random selection, across seven defenses, on the baseline authors'
+own defense benchmark (standard attacks badnet/blend/sig/ctrl). The res$_x^2$
+selection leaves a markedly higher ASR after \emph{every} defense (e.g.\ AC
+$75$ vs.\ $55$, NC $75$ vs.\ $43$). Only the strongest model-repair defenses
+(ABL~\cite{li2021abl}, RNP~\cite{lyu2023rnp}, I-BAU~\cite{zeng2021ibau}) bring
+ASR below $25\%$---and they do so at a steep cost to benign accuracy
+(see supp.). FAAT inherits this hard-to-defend selection and
+adds stealth on top.

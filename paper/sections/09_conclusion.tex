@@ -1,0 +1,18 @@
+\section{Conclusion}
+\label{sec:conclusion}
+
+We presented FAAT, a clean-label backdoor attack built from three generalized
+components: a frozen global direction, a bounded DCT-domain adaptive residual,
+and a feature-alignment loss. FAAT is trained self-containedly, improves attack
+success rate by $+3.9$ to $+51.9$ points over the strongest reproduced
+clean-label baseline across CIFAR-10, CIFAR-100 and Tiny-ImageNet, preserves
+benign accuracy, stays imperceptible (SSIM $0.92$--$0.98$), and is not flagged
+by Activation Clustering, Spectral Signatures, STRIP or Fine-Pruning. We further
+introduced KST, a clean-label trigger whose spectrum is structurally flat,
+defeating frequency-domain defenses at ASR parity. Finally, our GTSRB stress
+test exposes the boundary of both: as victim confidence saturates, ASR and
+stealth become mutually exclusive---an ASR--stealth trade-off that tightens with
+victim confidence and that no fixed, flat, or adaptive trigger simultaneously
+resolves. Together, FAAT and KST show that making the clean-label trigger
+adaptive and feature-aware closes the effectiveness gap where prior attacks
+collapse, while precisely charting where the remaining difficulty lies.

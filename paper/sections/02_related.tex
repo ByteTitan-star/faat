@@ -1,0 +1,33 @@
+\section{Related Work}
+\label{sec:related}
+
+\paragraph{Backdoor attacks.}
+BadNets~\cite{gu2017badnets} introduced pixel-patch triggers; subsequent work
+made triggers imperceptible via blending~\cite{chen2019blended},
+sinusoidal stripes~\cite{barni2020sig}, warping~\cite{nguyen2021wanet},
+steganography~\cite{li2021ssba}, and quantization~\cite{bui2022bppattack}.
+Clean-label attacks~\cite{turner2018labelconsist,generalcomponents2025} keep the
+true label of poisoned samples, trading strength for stealth.
+Narcissus~\cite{zeng2023narcissus} optimizes a universal trigger in a
+self-supervised/transfer manner; we reuse its global-direction idea but freeze
+it and add adaptive, feature-aligned components, removing its dependence on an
+externally optimized noise.
+
+\paragraph{Backdoor defenses.}
+Defenses either \emph{detect} poisoned samples---Activation
+Clustering~\cite{chen2018activation}, Spectral
+Signatures~\cite{tran2018spectral}, STRIP~\cite{gao2019strip},
+SCAN/SPECTRE~\cite{hayase2021spectre}---or \emph{mitigate} the backdoor in the
+model---Neural Cleanse~\cite{wang2019neuralcleanse},
+Fine-Pruning~\cite{liu2018finepruning}, ABL~\cite{li2021abl},
+NAD~\cite{li2021nad}, I-BAU~\cite{zeng2021ibau}, RNP~\cite{lyu2023rnp}. FAAT is
+designed against the detection family: its feature-alignment loss defeats
+clustering-based detectors, and the small $\ell_2$ budget defeats
+norm/entropy-based filters.
+
+\paragraph{Stealth and frequency-domain triggers.}
+FTrojan~\cite{wang2021ftrojan} and the frequency analysis
+of~\cite{zeng2021frequency} inject triggers in the frequency domain but still
+leave \emph{peaked} spectra that frequency-domain defenses can isolate. KST
+(Sec.~\ref{sec:kst}) is, to our knowledge, the first clean-label trigger whose
+spectrum is \emph{structurally flat}, so it has no spectral peak to detect.

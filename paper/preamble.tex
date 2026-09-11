@@ -1,0 +1,39 @@
+%% Additional packages and macros for the FAAT paper.
+%% Loaded by main.tex before hyperref.
+
+% --- pseudo-code ---
+\usepackage{algorithm}
+\usepackage{algorithmic}
+
+% (architecture diagram F2 is rendered with matplotlib -> no tikz needed;
+%  tikz pulls everyshi which clashes with cvpr.sty's inlined everyshi.)
+\floatname{algorithm}{Algorithm}
+\renewcommand{\algorithmicrequire}{\textbf{Input:}}
+\renewcommand{\algorithmicensure}{\textbf{Output:}}
+
+% --- tables / layout ---
+\usepackage{multirow}
+\usepackage{array}
+\usepackage{cuted}     % strip environment (two-column teaser)
+\usepackage{currfile}  % \currfilebase
+
+% --- inline annotations (disable for final) ---
+\newcommand{\red}[1]{{\color{red}#1}}
+\newcommand{\todo}[1]{{\color{red}#1}}
+\newcommand{\TODO}[1]{\textbf{\color{red}[TODO: #1]}}
+% For camera-ready, uncomment to hide todos:
+% \renewcommand{\TODO}[1]{}
+% \renewcommand{\todo}[1]{#1}
+
+% --- paper-specific macros ---
+\newcommand{\faat}{FAAT}                         % our main method
+\newcommand{\kst}{KST}                           % spectrum-flat trigger
+\newcommand{\sdt}{SDT}                           % Stein trigger
+\newcommand{\dglobal}{\delta_{\mathrm{g}}}       % global trigger
+\newcommand{\dadapt}{\delta_{\mathrm{a}}}        % adaptive residual
+\newcommand{\Lalign}{\mathcal{L}_{\mathrm{align}}}
+\newcommand{\asr}{\mathrm{ASR}}                  % attack success rate
+\newcommand{\ba}{\mathrm{BA}}                    % benign accuracy
+\newcommand{\ours}{\textbf{Ours}}                % bold "Ours" in tables
+\newcommand{\na}{\textendash}                    % placeholder for not-yet-filled cells
+\newcommand{\secsub}[1]{\textsubscript{#1}}      % tiny subscript helper

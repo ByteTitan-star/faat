@@ -1,0 +1,61 @@
+%==============================================================================
+% FAAT: Feature-Aligned Adaptive Triggers for Clean-Label Backdoor Attacks
+% CVPR submission (review / double-blind). Template: cvpr-org/author-kit.
+% Compile:  latexmk -pdf main
+%==============================================================================
+\documentclass[10pt,twocolumn,letterpaper]{article}
+
+%%%%%%%%% PAPER TYPE  - pick ONE
+\usepackage[review]{cvpr}       % REVIEW version (anonymous, line numbers)
+% \usepackage{cvpr}             % CAMERA-READY version
+% \usepackage[pagenumbers]{cvpr}% arXiv version with page numbers
+
+% Extra packages + small macros (loaded BEFORE hyperref)
+\input{preamble}
+
+\definecolor{cvprblue}{rgb}{0.21,0.49,0.74}
+\usepackage[pagebackref,breaklinks,colorlinks,allcolors=cvprblue]{hyperref}
+
+%%%%%%%%% PAPER METADATA
+\def\paperID{*****}            % *** Enter the (anonymous) Paper ID here
+\def\confName{CVPR}
+\def\confYear{2026}            % bump to your target year (e.g. 2027)
+
+%%%%%%%%% TITLE
+\title{Feature-Aligned Adaptive Triggers for Effective\\
+and Stealthy Clean-Label Backdoor Attacks}
+
+%%%%%%%%% AUTHORS  (double-blind: keep anonymous for review)
+\author{Anonymous Author(s)\\
+Institution\\
+{\tt\small anonymous@institution}
+}
+
+\begin{document}
+\maketitle
+
+% ---------- Teaser figure ----------
+\input{floats/figures_tex/f1_teaser}
+
+% ---------- Abstract ----------
+\input{sections/00_abstract}
+
+% ---------- Body ----------
+\input{sections/01_intro}
+\input{sections/02_related}
+\input{sections/03_method}
+\input{sections/04_setup}
+\input{sections/05_main_results}
+\input{sections/06_defense}
+\input{sections/07_ablation}
+\input{sections/08_kst}
+\input{sections/09_gtsrb_stress}
+\input{sections/09_conclusion}
+
+% ---------- References ----------
+{\small
+\bibliographystyle{ieeenat_fullname}
+\bibliography{refs}
+}
+
+\end{document}

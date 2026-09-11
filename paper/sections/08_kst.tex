@@ -1,0 +1,32 @@
+\section{KST: A Structurally Flat-Spectrum Trigger}
+\label{sec:kst}
+
+\input{floats/figures_tex/f8_kst}
+\input{floats/tables/tab_kst}
+
+Frequency-domain defenses isolate backdoors by detecting \emph{peaks} in the
+trigger's DFT---Narcissus, FTrojan~\cite{wang2021ftrojan} and the triggers
+of~\cite{zeng2021frequency} all concentrate energy in a few coefficients
+(Narcissus: peak/median $\approx\!68.8$, Fig.~\ref{fig:kst} right). \textbf{KST}
+removes that signature by construction: the trigger is parameterized by FFT
+\emph{phase} only, with magnitude constrained to be constant, so its DFT
+peak/median ratio is $\approx\!1.0$ (Fig.~\ref{fig:kst} left).
+
+\paragraph{Parity ASR at higher stealth.}
+At $\varepsilon\!=\!16/255$ on CIFAR-10 (dirty-label validation), KST reaches
+$99.8\%$ ASR---identical to Narcissus---while being stealthier (SSIM $0.961$ vs.\
+$0.946$) and smaller ($\ell_2$ $1.33$ vs.\ $1.64$, Tab.~\ref{tab:kst}). The
+4th-order cumulant signature (s-dprime $4.64$) is preserved, so the trigger
+remains learnable by the victim.
+
+\paragraph{Clean-label integration.}
+Plugged into the same Component-A clean-label pipeline as FAAT, KST exceeds
+\emph{all} baseline triggers with the forget selection
+($86.8\%$ vs.\ MultiBpp-RGB $81.2\%$) and with the res$_x$ selection
+($92.6\%$ vs.\ MultiBpp-B $89.7\%$), with $\ba\!\approx\!94.7$ and a flat
+spectrum throughout. KST therefore extends FAAT's stealth into the frequency
+domain: where FAAT defeats \emph{spatial} defenses via $\dadapt$ and $\Lalign$,
+KST defeats \emph{frequency} defenses structurally. At $\varepsilon\!=\!48$ KST
+also generalizes to CIFAR-100 ($93.9\%$) and Tiny-ImageNet ($98.5\%$); the
+high-confidence GTSRB regime, where KST's stealth--attack trade-off surfaces, is
+analyzed in Sec.~\ref{sec:gtsrb}.
