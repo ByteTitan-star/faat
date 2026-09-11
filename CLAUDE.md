@@ -10,7 +10,11 @@
 ## Git 仓库与分支管理（强制，防版本代码/数据丢失）
 
 > 远程：`git@github.com:ByteTitan-star/faat.git`（SSH）或 `https://github.com/ByteTitan-star/faat.git`（HTTPS）。
-> 凭证已缓存 `~/.git-credentials`（chmod 600）。当前服务器 GitHub 网络不通（代理超时），恢复后用 `git push --all origin && git push --tags` 推送。
+> 凭证已缓存 `~/.git-credentials`（chmod 600）。**网络已恢复（2026-09-11）**：全部分支已推远端（`exp/kst-sdt` 含 docs+paper 快照 `458b8f8`、`exp/orbit-irrep`、`backup/results-logs`）。
+> **results/ 日志备份约定**（`results/` 被 gitignore，日志是论文数字唯一真相源，必须双备份）：
+> - 本地跨盘：`/media/hd0/wangxin/backup/faat_results_logs_*.tar.gz`（279 个 output_*.log + _detail_summary.json）+ `faat_logs_meta_*.tar.gz`（logs/ 小文件元数据；>10MB 的逐步优化打印可再生，不备份）
+> - 异地：GitHub `backup/results-logs` 独立分支（同两个 tarball）
+> - 新一批实验跑完后重打 tarball（日期后缀）并更新两处。
 > 本地快照双保险：`snapshots/v3.1_2026-07-03/`（cp 版代码副本）。
 
 ### 分支策略
