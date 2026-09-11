@@ -1,0 +1,40 @@
+# 大文件/二进制/数据 — 不进git(可由代码重新生成)
+data/
+resource/
+*.pth
+*.npy
+*.pkl
+*.pt
+# 模型权重也排除(results 里的 model_last.pth)
+*.model
+__pycache__/
+*.pyc
+# nohup 原始屏幕输出(重复且有PIL噪音);训练日志 output_*.log 保留(含ASR/BA)
+*.stdout
+*.PARTIAL_*
+
+# v4: experiment outputs (logs/models) too big for GitHub, reproducible from code
+results/
+logs/
+*.log
+data100/
+data_tiny/
+tmp/
+
+# 本地 TeX Live 树(222MB, 仅本机用, 见 paper/README.md) — 不进 git
+.texmf/
+# LaTeX 编译产物(make 可再生; main.pdf/supplement.pdf 保留作论文快照)
+paper/*.aux
+paper/*.bbl
+paper/*.blg
+paper/*.brf
+paper/*.fls
+paper/*.fdb_latexmk
+paper/*.out
+paper/*.synctex.gz
+# Overleaf 打包 zip(由 paper/ 源文件再生)
+paper/faat_cvpr_overleaf.zip
+
+# 新项目：结果与日志不进 git（备份走 tarball+backup 分支，同旧仓库约定）
+results_ood/
+resource_ood/

@@ -1,0 +1,10 @@
+run,ASR,BA
+bl_c100_badnets_seed1,78.7,76.65
+bl_c100_badnets_seed2,83.9,77.17
+bl_c100_badnets_seed3,92.4,76.85
+bl_c100_blend_seed1,76.5,76.6
+bl_c100_blend_seed2,76.8,77.48
+bl_c100_blend_seed3,77.2,77.08
+bl_c100_quantize_rgb_seed1,29.5,77.47
+bl_c100_quantize_rgb_seed2,31.0,77.18
+bl_c100_quantize_rgb_seed3,25.1,77.26

@@ -1,0 +1,2 @@
+run,dataset,L2,seed,ASR,BA,L2_meas,SSIM,DCT,AC_AUC,SS_AUC,STRIP_TPR5,FP_ASR@0.9
+ablation_cifar10_l2_1.5_seed1_noalign,cifar10,1.5,1,96.37,94.66,1.49,0.95,0.0168,0.251,0.374,0.046,89.8

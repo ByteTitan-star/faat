@@ -1,0 +1,13 @@
+dataset,variant,poison_rate,metric,value
+CIFAR10,Full Method (Ours),0.01,ASR,98.5
+CIFAR10,Full Method (Ours),0.01,ACC,92.1
+CIFAR10,w/o Frequency Constraint,0.01,ASR,91.2
+CIFAR10,w/o Frequency Constraint,0.01,ACC,92.0
+CIFAR10,w/o Stealth Loss,0.01,ASR,95.1
+CIFAR10,w/o Stealth Loss,0.01,ACC,91.8
+CIFAR10,w/o Adaptive Trigger,0.01,ASR,85.3
+CIFAR10,w/o Adaptive Trigger,0.01,ACC,92.3
+CIFAR10,w/o Semantic Consistency,0.01,ASR,89.7
+CIFAR10,w/o Semantic Consistency,0.01,ACC,91.9
+CIFAR10,w/o Mask Regularization,0.01,ASR,93.6
+CIFAR10,w/o Mask Regularization,0.01,ACC,91.5

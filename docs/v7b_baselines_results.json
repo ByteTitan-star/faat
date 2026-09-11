@@ -1,0 +1,47 @@
+[
+  {
+    "run": "bl_tiny_badnets_seed1",
+    "ASR": 90.1,
+    "BA": 55.8
+  },
+  {
+    "run": "bl_tiny_badnets_seed2",
+    "ASR": 84.7,
+    "BA": 54.96
+  },
+  {
+    "run": "bl_tiny_badnets_seed3",
+    "ASR": 93.2,
+    "BA": 54.62
+  },
+  {
+    "run": "bl_tiny_blend_seed1",
+    "ASR": 78.7,
+    "BA": 54.45
+  },
+  {
+    "run": "bl_tiny_blend_seed2",
+    "ASR": 81.2,
+    "BA": 55.06
+  },
+  {
+    "run": "bl_tiny_blend_seed3",
+    "ASR": 78.0,
+    "BA": 54.96
+  },
+  {
+    "run": "bl_tiny_quantize_rgb_seed1",
+    "ASR": 63.1,
+    "BA": 54.66
+  },
+  {
+    "run": "bl_tiny_quantize_rgb_seed2",
+    "ASR": 64.3,
+    "BA": 54.86
+  },
+  {
+    "run": "bl_tiny_quantize_rgb_seed3",
+    "ASR": 60.2,
+    "BA": 54.67
+  }
+]

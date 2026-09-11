@@ -1,0 +1,10 @@
+run,attack,seed,ASR,BA
+badnets_seed1,badnets,1,0.0,99.95
+badnets_seed2,badnets,2,0.0,99.96
+badnets_seed3,badnets,3,0.0,99.95
+blend_seed1,blend,1,34.75,99.87
+blend_seed2,blend,2,36.07,99.92
+blend_seed3,blend,3,31.57,99.88
+quantize_rgb_seed1,quantize_rgb,1,0.0,99.95
+quantize_rgb_seed2,quantize_rgb,2,0.0,99.95
+quantize_rgb_seed3,quantize_rgb,3,0.0,99.95
