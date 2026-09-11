@@ -31,6 +31,8 @@ from .strategy_net import StrategyNet, N_BANDS
 from .trigger_gen import FAATGenerator
 from .losses import align_loss, ssim_loss, l2_loss, freq_loss
 from .global_trigger import optimize_global_trigger, build_clean_image_tensor
+from .ood_trigger import (optimize_ood_trigger, build_image_and_label_tensors,
+                          load_ood_images)
 
 NAR_NOISE = './resource/narcissus/noise_01000.pth'
 
@@ -101,6 +103,28 @@ def run_optimization(cfg):
             log_every=cfg.log_every, logger=lambda m: print('[faat-opt] ' + m))
         init_g = torch.from_numpy(init_g).float().to(device)   # engine returns numpy
         cfg.init_global_scale = 1.0     # budget already baked in; avoid double-scaling
+    elif getattr(cfg, 'global_mode', 'nar_file') == 'ood':
+        # A/B/C mechanism-isolation arms (ood_trigger.py): OOD enters either as
+        # extra POOL data (arm b) or as the explicit CALIBRATION reference (arm c).
+        # Downstream FAAT pipeline (adaptive + L_align + injection) is unchanged --
+        # only the source of delta_global differs, keeping the comparison clean.
+        print('[faat-opt] global_mode=ood: A/B/C arm (pool=%s calib=%s w=%.2f ood=%s)' %
+              (cfg.ood_pool, cfg.ood_calib, cfg.ood_weight, cfg.ood_dataset))
+        imgs, lbls = build_image_and_label_tensors(train_dataset, cfg.size, device)
+        target_imgs = imgs[lbls == cfg.y_target]
+        nontarget_imgs = imgs[lbls != cfg.y_target]
+        ood_imgs = None
+        if cfg.ood_pool == 'target+ood' or cfg.ood_calib != 'none':
+            ood_imgs = load_ood_images(cfg.ood_dataset, cfg.ood_data_dir,
+                                       cfg.size, device, cap=cfg.ood_cap)
+        init_g, gt_info = optimize_ood_trigger(
+            proxy, target_imgs, ood_imgs, nontarget_imgs, cfg.y_target, device,
+            pool=cfg.ood_pool, calib=cfg.ood_calib, calib_weight=cfg.ood_weight,
+            l2_budget=cfg.global_l2_budget, steps=cfg.global_steps, lr=cfg.global_lr,
+            batch_size=cfg.global_batch_size, seed=cfg.seed,
+            log_every=cfg.log_every, logger=lambda m: print('[faat-opt] ' + m))
+        init_g = torch.from_numpy(init_g).float().to(device)
+        cfg.init_global_scale = 1.0
     else:
         init_g = _init_global_direction(cfg.size, cfg.init_global_scale,
                                         cfg.init_random, device)
@@ -287,10 +311,28 @@ def build_argparser():
     p.add_argument('--sparse_gate', action='store_true')
     p.add_argument('--init_global_scale', type=float, default=1.0)
     p.add_argument('--init_random', action='store_true')
-    p.add_argument('--global_mode', choices=['nar_file', 'from_scratch'], default='nar_file',
+    p.add_argument('--global_mode', choices=['nar_file', 'from_scratch', 'ood'], default='nar_file',
                    help="v4: 'from_scratch' = self-contained Narcissus engine (optimise delta_global "
                         "from scratch against the clean proxy; NO authors' noise_01000.pth) -> generalises "
-                        "to any dataset. 'nar_file' = v3.1 behaviour (warm-start from noise_01000.pth).")
+                        "to any dataset. 'nar_file' = v3.1 behaviour (warm-start from noise_01000.pth). "
+                        "'ood' = A/B/C mechanism-isolation arms (see --ood_pool/--ood_calib).")
+    # ---- OOD-calibration A/B/C arms (48h mechanism check; see faat/ood_trigger.py) ----
+    p.add_argument('--ood_pool', choices=['target', 'target+ood', 'nontarget'], default='target',
+                   help="optimisation pool: 'target'=target-class only (arms a/c), "
+                        "'target+ood'=OOD added as extra DATA (arm b), "
+                        "'nontarget'=frozen-baseline behaviour (arm cur)")
+    p.add_argument('--ood_calib', choices=['none', 'cos', 'prob'], default='none',
+                   help="explicit negative-calibration reference: 'cos'=hinge on feature cos "
+                        "to c_target (default arm c), 'prob'=P(target) on OOD, 'none'=off")
+    p.add_argument('--ood_weight', type=float, default=1.0,
+                   help='weight of the calibration term (arm c sweep knob)')
+    p.add_argument('--ood_dataset', default='cifar100',
+                   choices=['cifar10', 'cifar100', 'tiny', 'imagefolder'],
+                   help='arbitrary EXTERNAL OOD source (must not belong to the victim task)')
+    p.add_argument('--ood_data_dir', default='',
+                   help='root dir when --ood_dataset=imagefolder')
+    p.add_argument('--ood_cap', type=int, default=20000,
+                   help='max OOD images cached on device')
     p.add_argument('--global_steps', type=int, default=8000,
                    help='from_scratch: Narcissus optimisation steps')
     p.add_argument('--global_lr', type=float, default=0.02)
