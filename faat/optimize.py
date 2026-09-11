@@ -139,9 +139,15 @@ def run_optimization(cfg):
     # optimise only the adaptive residual + policy for defense-evasion shaping).
     if getattr(cfg, 'fix_global', False):
         gen.delta_global.requires_grad_(False)
-        src = 'self-contained Narcissus (l2=%.2f)' % (gt_info['final_l2'] if gt_info else cfg.global_l2_budget) \
-              if getattr(cfg, 'global_mode', 'nar_file') == 'from_scratch' \
-              else 'Narcissus file x %.3f' % cfg.init_global_scale
+        _gm = getattr(cfg, 'global_mode', 'nar_file')
+        if _gm == 'from_scratch':
+            src = 'self-contained Narcissus (l2=%.2f)' % (gt_info['final_l2'] if gt_info else cfg.global_l2_budget)
+        elif _gm == 'ood':
+            src = 'OOD arm (pool=%s calib=%s w=%.2f, l2=%.2f)' % (
+                cfg.ood_pool, cfg.ood_calib, cfg.ood_weight,
+                gt_info['final_l2'] if gt_info else cfg.global_l2_budget)
+        else:
+            src = 'Narcissus file x %.3f' % cfg.init_global_scale
         print('[faat-opt] fix_global=True (delta_global frozen at %s)' % src)
 
     # 4) optimisers (delta_global gets its own lr per plan 4.6)
