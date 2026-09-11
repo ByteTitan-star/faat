@@ -10,8 +10,9 @@
 
 BASE="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$BASE"
-SEED=1
-ARMS="cifar10_a cifar10_b cifar10_c gtsrb_a gtsrb_b gtsrb_c"
+# Full tag list: 6 primary arms (seed1) + 2 cur references + 4 seed2 preload runs
+ARMS="cifar10_a_seed1 cifar10_b_seed1 cifar10_c_seed1 cifar10_cur_seed1 cifar10_a_seed2 cifar10_c_seed2 \
+      gtsrb_a_seed1 gtsrb_b_seed1 gtsrb_c_seed1 gtsrb_cur_seed1 gtsrb_a_seed2 gtsrb_c_seed2"
 BK=/media/hd0/wangxin/backup/ood_abc_20260911
 STATUS=results_ood/STATUS.md
 DEADLINE=$(( $(date +%s) + 60*3600 ))
@@ -45,7 +46,7 @@ while [ "$(date +%s)" -lt "$DEADLINE" ]; do
     echo "| run | 状态 | epoch | ASR(末值) | ASR(末20均) | BA(末值) | BA(末20均) |"
     echo "|---|---|---|---|---|---|---|"
     for a in $ARMS; do
-      tag="oodabc_${a}_seed${SEED}"
+      tag="oodabc_${a}"
       log="results_ood/${tag}/output_1.log"
       m=$(epoch_metrics "$log")
       if [ -z "$m" ]; then

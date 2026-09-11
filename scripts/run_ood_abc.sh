@@ -7,6 +7,9 @@
 #   a   = positive-only target alignment   (--ood_pool target    --ood_calib none)
 #   b   = OOD as extra optimisation DATA   (--ood_pool target+ood --ood_calib none)
 #   c   = OOD as explicit calibration REF  (--ood_pool target    --ood_calib cos)
+#   cur = same-pipeline universal baseline (--ood_pool nontarget  --ood_calib none;
+#          equivalent to the frozen repo's from_scratch engine, run for exact
+#          apples-to-apples anchoring instead of comparing to historical numbers)
 # Reference anchors (no rerun needed): frozen-repo faatb v4_l2_1.5 CIFAR-10 = 93.6,
 # faatb_gtsrb_l2_3.5 = 82.7 (full-FAAT numbers; treat as context, not arm).
 #
@@ -48,7 +51,8 @@ for ARM in "$@"; do
     a) POOL="target";     CALIB="none" ;;
     b) POOL="target+ood"; CALIB="none" ;;
     c) POOL="target";     CALIB="cos"  ;;
-    *) echo "unknown arm $ARM (a|b|c)"; continue ;;
+    cur) POOL="nontarget"; CALIB="none" ;;
+    *) echo "unknown arm $ARM (a|b|c|cur)"; continue ;;
   esac
   TAG="oodabc_${DS}_${ARM}_seed${SEED}"
   ST="./resource_ood/triggers/${TAG}"
