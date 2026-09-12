@@ -12,7 +12,8 @@ BASE="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$BASE"
 # Full tag list: 6 primary arms (seed1) + 2 cur references + 4 seed2 preload runs
 ARMS="cifar10_a_seed1 cifar10_b_seed1 cifar10_c_seed1 cifar10_cur_seed1 cifar10_a_seed2 cifar10_c_seed2 \
-      gtsrb_a_seed1 gtsrb_b_seed1 gtsrb_c_seed1 gtsrb_cur_seed1 gtsrb_a_seed2 gtsrb_c_seed2"
+      gtsrb_a_seed1 gtsrb_b_seed1 gtsrb_c_seed1 gtsrb_cur_seed1 gtsrb_a_seed2 gtsrb_c_seed2 \
+      gtsrb_a_seed1_ep150 gtsrb_b_seed1_ep150 gtsrb_c_seed1_ep150"
 BK=/media/hd0/wangxin/backup/ood_abc_20260911
 STATUS=results_ood/STATUS.md
 DEADLINE=$(( $(date +%s) + 60*3600 ))
@@ -28,11 +29,17 @@ epoch_metrics() {  # $1=log  ->  "epoch asr_f ba_f asr20 ba20" or ""
     END { if (n>0) printf "%d %.4f %.4f %.4f %.4f", maxep, f7, f9, s7/n, s9/n }'
 }
 
+target_ep() {  # $1=arm tag -> final epoch index (149 for _ep150 screening runs, else 299)
+  case "$1" in *_ep150) echo 149 ;; *) echo 299 ;; esac
+}
+
 all_settled() {
-  local a log
+  local a log te
   for a in $ARMS; do
     log=$(ls -t results_ood/oodabc_${a}/output_*.log 2>/dev/null | head -1)
-    [ -n "$log" ] && grep -qsE '\] - 299[[:space:]]' "$log" || return 1
+    [ -n "$log" ] || return 1
+    te=$(target_ep "$a")
+    grep -qsE "\] - ${te}[[:space:]]" "$log" || return 1
   done
   return 0
 }
@@ -55,7 +62,8 @@ while [ "$(date +%s)" -lt "$DEADLINE" ]; do
       else
         set -- $m
         ep=$1; asr_f=$2; ba_f=$3; asr20=$4; ba20=$5
-        if grep -qsE '\] - 299[[:space:]]' "$log"; then
+        te=$(target_ep "$a")
+        if grep -qsE "\] - ${te}[[:space:]]" "$log"; then
           if [ -f "$BK/${tag}_$(basename "$log")" ]; then bk="DONE ✅已备份"
           else
             cp "$log" "$BK/${tag}_$(basename "$log")" 2>/dev/null
@@ -69,7 +77,7 @@ while [ "$(date +%s)" -lt "$DEADLINE" ]; do
           if grep -qs "finished $tag (exit [1-9]" results_ood/_abc_*.log; then
             row="| $tag | ❌ FAILED（启动器非零退出，见 _abc_*.log） | $ep | $asr_f | $asr20 | $ba_f | $ba20 |"
           else
-            row="| $tag | RUNNING | $ep/300 | $asr_f | $asr20 | $ba_f | $ba20 |"
+            row="| $tag | RUNNING | $ep/$((te+1)) | $asr_f | $asr20 | $ba_f | $ba20 |"
           fi
         fi
       fi

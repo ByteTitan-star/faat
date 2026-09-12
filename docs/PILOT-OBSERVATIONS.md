@@ -47,3 +47,27 @@ NC 未实现（后续按需）。所有响应均为 run 末 checkpoint 单次测
 2. 第一条边界曲线：以 **proxy_gen_nt 为可控轴**（calib_weight / pool 组成 / 触发器优化步数均可
    连续调节它），GTSRB 上 coarse-to-fine 扫描，纵轴 P_L（过渡带多 seed）。
 3. 表征层扩展：神经元集中度、layer-wise CKA、增强一致性（零训练成本，现有 checkpoint 即可）。
+
+## Pilot Observation 4（新，表征层扩展 `docs/pilot_representation.csv`）：acquisition 的通道集中度签名
+
+触发引起的特征偏移在 512 维上的集中度（Gini / top-16 质量占比）随 acquisition 走高：
+
+| GTSRB | gini(\|Δ\|) | conc_top16 | victim ASR |
+|---|---|---|---|
+| cur | 0.711 | 0.358 | 84.5 |
+| a | 0.727 / 0.717 | 0.354 | 49.5 / 50.7 |
+| b | 0.733 | 0.330 | 65.8 |
+| **c（non-acq）** | **0.630 / 0.651** | **0.222 / 0.251** | 3.3 / 4.0 |
+
+**学到的后门把偏移集中到少数通道；未获取的 c 臂偏移显著更弥散**——这是继 Obs1（行为前可测）
+之后的第二个候选表征级标记，且同样在 victim 训练后的 checkpoint 上分离两个 regime。
+CIFAR-10 各臂 gini 0.35–0.39 无分离（天花板效应一致）。
+
+layer-wise 1−CKA（clean vs triggered）呈质变而非单调：cur 臂触发表征与 clean 几乎正交
+（1−CKA=0.91）且获取最好；c 臂偏移反而较"温和"（0.30–0.37）但方向背离目标锚点——
+结合 Obs2（c 的 sep≈11），非获取 regime 的几何是"自建新簇"，获取 regime 是"大位移并入目标区"。
+
+增强一致性（两次随机增广的特征余弦）在所有 run 饱和于 0.98–0.99，无判别力；
+需改为"触发偏移 Δ 的增广不变性"（cos(Δ(T₁x), Δ(T₂x))）再测——记为待改进，不作结论。
+
+*以上均为 pilot evidence：n=12、单架构、run 末单次测量；跨 seed/架构/预算的稳定性待 P2。*
