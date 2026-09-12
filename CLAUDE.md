@@ -1,19 +1,45 @@
-# CLAUDE.md — OOD-Calibrated Target-Specific Trigger（新论文主线）
+# CLAUDE.md — 可学性边界 × OOD 校准 × 检测可观测性（防御表征研究主线）
 
-> ⚠️ **2026-09-12 定位转向**：48h 机制验证结果 NO-GO（OOD 负校准作为攻击组件被证伪，
-> 见 `docs/ood_abc_results.md`——GTSRB 上 c 臂 3.3/4.0 vs a 49.5/50.7，特异性与可学性倒置）。
-> 按作者决定转向**防御导向的机制表征研究**：不再做更强 trigger，主问题收敛为——
-> *"clean-label、target-only 受限投毒下，trigger 何时能被稳定学习；OOD 作为实验变量
-> （非攻击增强组件）如何改变可学性边界、表征几何与检测难度。"*
-> 四个 RQ：① 可学性边界（poison rate / target 类样本量 / 触发器可见性 / 增强强度的相变曲线）
-> ② OOD 校准效应（无/近域/远域/diversity）③ 内部表征机制（特征距离、簇分离、神经元集中度、
-> layer-wise shift、增强一致性）④ **检测性-可学性关系**（不可学 / 可学易检 / 可学难检三区域）。
-> 指标三层：行为层（BA/ASR/方差）、表征层（feature distance/CKA/layer-wise）、防御层
-> （AUROC/TPR@低FPR/poison localization）。"可学"须多 seed 多架构稳定复现，不认单点 ASR。
-> **必须交涉的先行工作**：Zheng "Phase Transitions in Backdoor Learning"（ED50 阈值概念，
-> LLM 理论研讨稿）、Xian et al. ICML 2023 "Adaptability Hypothesis"（何时学到后门的理论）、
-> Gao et al. PR 2023（clean-label 对抗效应）、以及原有 Narcissus/NoiseAttack/BAAT 清单。
-> 现有 12 个训练完的模型（`results_ood/*/model_last.pth`）是 RQ③④ 的零成本起点资产。
+> **核心命题（2026-09-12 定稿，作者核验后措辞）**：
+> *This project does not optimize a new backdoor attack. It characterizes when clean-label
+> backdoors become learnable under target-only poisoning, how OOD calibration shifts this
+> acquisition boundary, and when learned backdoors become detectable—or remain
+> observationally indistinguishable to existing defenses.*
+
+## 🚫 Novelty 安全区（违反任何一条 = 表述错误，2026-09-12 作者核验定稿）
+
+**不可 claim**（均有正式先例）：
+- "首次研究 backdoor learnability"——Xian et al. ICML 2023 Adaptability Hypothesis（何时/为何学到后门的理论）
+- "首次研究攻击强度与检测的关系"——Khaddaj et al. ICML 2023 *Rethinking Backdoor Attacks*：backdoor feature strength 定义 + 与 effectiveness 挂钩 + feature-strength 检测器 + AUROC
+- "首次 target-only" / "首次 target-only + OOD"——Narcissus (CCS 2023) 就是 target-class + public OOD（OOD 参与 surrogate 获取/表征准备）
+- "首次投毒率相变"——Zheng *Phase Transitions in Backdoor Learning*（ED50；注意：Harvard AI Safety 课程项目、LLM，只作 conceptually related / concurrent motivation，不作核心 methodological prior）
+- "clean-label 可学性无理论"——Yu et al. ICML 2024 *Generalization Bound and New Algorithm for Clean-Label Backdoor Attack*
+
+**安全的主张**：系统刻画 target-only clean-label 图像后门在多数据/训练约束下的 **empirical learnability boundary**；OOD 角色/距离/diversity 如何**移动**该边界；learnability–representation–detectability 三者**何时耦合、何时解耦**（decoupling region 是 RQ④ 的靶心，不是简单 ASR-AUROC 散点）。检测可行性的理论框架对照：Pichler et al. AISTATS 2024（检测作为假设检验的不可行性）——我们的故事："实证研究何种 learnability regime 下现有 detector 的假设成立/失效"。
+
+Threat-model anchor = 自己上一篇 **Wicked Oddities (ICLR 2025)**：related work 逻辑 = "它证明 target-only 场景下 sample 异质性重要；我们问固定攻击族后，异质性 + 辅助 OOD 如何共同决定'是否被学到'与'学到后是否可检'"。
+
+## 四个 RQ（2026-09-12 修订版）
+
+1. **Learnability boundary**：target-only clean-label 投毒下，backdoor acquisition 如何随投毒预算/target 类支撑集/扰动可见性/增强/训练随机性迁移。产物 = **learnability phase map**：P_L(x)=P(acquisition|x)，报 L10/L50/L90 边界，不报单点 ASR。**seed 政策**：远离边界 2 seed，过渡带加密独立重复（相变区本质随机，2 seed 不足以定边界）。
+2. **OOD calibration**：OOD 把边界往哪移（相对 no-OOD 与 ID non-target 参照）。OOD 是**实验变量**，不是攻击贡献。近域/远域/diversity 三轴。
+3. **Representation mechanism**：哪些表征量**先于或预测** acquisition。Pilot Observation 1（已入档）：arm 级 proxy 方向通用度 → victim ASR 单调（见 `docs/ood_abc_results.md`，c 臂表述为 "crossed into the non-acquisition regime"，作低端 anchor 保留，不写 failed）。
+4. **Detectability boundary**：**何时**可学性提升转化为可检测性提升，何时二者**解耦**。
+
+## 防御指标必须分层（不可混为一张 AUROC 表）
+
+| 方法 | 层级 | 报告什么 |
+|---|---|---|
+| Activation Clustering / Spectral Signatures | training-sample 检测 | poison-detection AUROC / TPR@FPR |
+| STRIP | test-input 检测 | triggered-input detection AUROC |
+| Neural Cleanse | model/class 级 | anomaly index（class 级检测） |
+| Fine-Pruning | mitigation | ASR 降幅 vs BA 退化（不是检测 AUROC） |
+
+## ⚠️ 实验设计红线
+
+- **schedule 不变性是待验假设**：短 schedule（150ep）与 full 300ep 的边界位置/ordering 须先在少数代表条件上验证一致，才能把短 schedule 当 screening protocol；否则测的是 under-trained regime。
+- P2 边界估计用 **coarse-to-fine**（围绕已观察到的过渡带加密），不做全矩形网格。
+- **P1 = GO/NO-GO 闸门**：12 checkpoint pilot 若呈 "proxy generality → representation change → victim acquisition" 稳定序，即继续（detection 非单调反而更有意思 = 结构性 decoupling）。
 
 > 创建：2026-09-11。基线导入自 `../GeneralComponents-main` @ `df72457`（tag `v5.0-paper-frozen`）。
 > **旧仓库已冻结只读**（见其 `docs/BASELINE-FREEZE-2026-09-11.md`）。本仓库一切新产物写 `results_ood/` 与 `resource_ood/`，**绝不写回旧仓库或其 symlink 目标**。
