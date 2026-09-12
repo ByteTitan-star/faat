@@ -31,8 +31,8 @@ epoch_metrics() {  # $1=log  ->  "epoch asr_f ba_f asr20 ba20" or ""
 all_settled() {
   local a log
   for a in $ARMS; do
-    log="results_ood/oodabc_${a}_seed${SEED}/output_1.log"
-    grep -qsE '\] - 299[[:space:]]' "$log" || return 1
+    log=$(ls -t results_ood/oodabc_${a}/output_*.log 2>/dev/null | head -1)
+    [ -n "$log" ] && grep -qsE '\] - 299[[:space:]]' "$log" || return 1
   done
   return 0
 }
@@ -47,7 +47,7 @@ while [ "$(date +%s)" -lt "$DEADLINE" ]; do
     echo "|---|---|---|---|---|---|---|"
     for a in $ARMS; do
       tag="oodabc_${a}"
-      log="results_ood/${tag}/output_1.log"
+      log=$(ls -t results_ood/${tag}/output_*.log 2>/dev/null | head -1)
       m=$(epoch_metrics "$log")
       if [ -z "$m" ]; then
         st="QUEUED（等前序臂）"
@@ -56,9 +56,9 @@ while [ "$(date +%s)" -lt "$DEADLINE" ]; do
         set -- $m
         ep=$1; asr_f=$2; ba_f=$3; asr20=$4; ba20=$5
         if grep -qsE '\] - 299[[:space:]]' "$log"; then
-          if [ -f "$BK/${tag}_output_1.log" ]; then bk="DONE ✅已备份"
+          if [ -f "$BK/${tag}_$(basename "$log")" ]; then bk="DONE ✅已备份"
           else
-            cp "$log" "$BK/${tag}_output_1.log" 2>/dev/null
+            cp "$log" "$BK/${tag}_$(basename "$log")" 2>/dev/null
             [ -f "resource_ood/triggers/${tag}/global_meta.json" ] && \
               cp "resource_ood/triggers/${tag}/global_meta.json" "$BK/${tag}_global_meta.json" 2>/dev/null
             bk="DONE ✅已备份"
@@ -85,7 +85,7 @@ while [ "$(date +%s)" -lt "$DEADLINE" ]; do
 
   if all_settled; then
     echo "[watchdog $(date '+%F %T')] all arms settled -> final STATUS.md written, exiting" >> results_ood/_watchdog.log
-    cp results_ood/_abc_cifar10_gpu2.log results_ood/_abc_gtsrb_gpu1.log "$BK/" 2>/dev/null
+    cp results_ood/_abc_*.log "$BK/" 2>/dev/null
     exit 0
   fi
   sleep 300
