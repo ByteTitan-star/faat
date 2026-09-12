@@ -25,12 +25,15 @@ set -u
 DS="$1"; GPU="$2"; SEED="$3"; shift 3
 EPOCHS="${EPOCHS:-300}"          # EPOCHS=150 bash scripts/run_ood_abc.sh ... -> short-schedule screening run
 EPOCHTAG="${EPOCH_TAG:-}"        # set EPOCH_TAG=_ep150 for short-schedule tags (else results collide with 300ep)
+POISON_RATE="${POISON_RATE:-}"   # POISON_RATE=0.001 -> override the dataset default; tag gets PRTAG
+PR="${POISON_RATE:-0.01}"
+PRTAG="${PRTAG:-}"
 PY=/media/hd1/wangxin/work7-7month/.conda-envs/GeneralComponents/bin/python
 cd "$(dirname "$0")/.."
 
 if [ "$DS" = "cifar10" ]; then
   COMMON="--dataset cifar10 --num_classes 10 --data_dir ./data \
-    --selection res --res_sel square --poison_rate 0.01 --select_epoch 10 \
+    --selection res --res_sel square --poison_rate ${PR:-0.01} --select_epoch 10 \
     --output_dir ./resource/save_metric_10_res \
     --proxy_path ./resource/faat/proxy/resnet18_clean_cifar10.pth \
     --ood_dataset cifar100 \
@@ -38,7 +41,7 @@ if [ "$DS" = "cifar10" ]; then
     --steps 2000 --batch_size 48 --adaptive_l2_max 0.15 --eps_max 0.05"
 elif [ "$DS" = "gtsrb" ]; then
   COMMON="--dataset gtsrb --data_dir data/GTSRB32 --num_classes 43 \
-    --selection res --res_sel square --poison_rate 0.01 --select_epoch 10 \
+    --selection res --res_sel square --poison_rate ${PR:-0.01} --select_epoch 10 \
     --output_dir ./resource/save_metric_gtsrb \
     --proxy_path ./resource/faat/proxy/resnet18_clean_gtsrb.pth \
     --ood_dataset cifar10 \
@@ -56,7 +59,7 @@ for ARM in "$@"; do
     cur) POOL="nontarget"; CALIB="none" ;;
     *) echo "unknown arm $ARM (a|b|c|cur)"; continue ;;
   esac
-  TAG="oodabc_${DS}_${ARM}_seed${SEED}${EPOCHTAG}"
+  TAG="oodabc_${DS}_${ARM}_seed${SEED}${EPOCHTAG}${PRTAG}"
   ST="./resource_ood/triggers/${TAG}"
   RD="./results_ood/${TAG}"
   LAST_EP=$((EPOCHS - 1))

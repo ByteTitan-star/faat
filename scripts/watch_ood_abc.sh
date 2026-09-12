@@ -13,7 +13,11 @@ cd "$BASE"
 # Full tag list: 6 primary arms (seed1) + 2 cur references + 4 seed2 preload runs
 ARMS="cifar10_a_seed1 cifar10_b_seed1 cifar10_c_seed1 cifar10_cur_seed1 cifar10_a_seed2 cifar10_c_seed2 \
       gtsrb_a_seed1 gtsrb_b_seed1 gtsrb_c_seed1 gtsrb_cur_seed1 gtsrb_a_seed2 gtsrb_c_seed2 \
-      gtsrb_a_seed1_ep150 gtsrb_b_seed1_ep150 gtsrb_c_seed1_ep150"
+      gtsrb_a_seed1_ep150 gtsrb_b_seed1_ep150 gtsrb_c_seed1_ep150 \
+      gtsrb_a_seed1_pr0.0005 gtsrb_a_seed2_pr0.0005 gtsrb_a_seed1_pr0.001 gtsrb_a_seed2_pr0.001 \
+      gtsrb_a_seed1_pr0.0025 gtsrb_a_seed2_pr0.0025 gtsrb_a_seed1_pr0.005 gtsrb_a_seed2_pr0.005 \
+      cifar10_a_seed1_ep150 cifar10_b_seed1_ep150 cifar10_c_seed1_ep150 \
+      gtsrb_b_seed2 gtsrb_cur_seed2"
 BK=/media/hd0/wangxin/backup/ood_abc_20260911
 STATUS=results_ood/STATUS.md
 DEADLINE=$(( $(date +%s) + 60*3600 ))
