@@ -1,0 +1,13 @@
+tag,dataset,arm,seed,epoch,victim_asr,ba,proxy_gen_nontgt,proxy_gen_target,pull,sep,test_triggered_asr
+oodabc_cifar10_a_seed1,cifar10,a,1,299,88.83,94.68,0.4913,0.998,4.9199,0.9032,90.37
+oodabc_cifar10_a_seed2,cifar10,a,2,299,80.81,94.93,0.1797,0.974,4.5441,1.0972,83.77
+oodabc_cifar10_b_seed1,cifar10,b,1,299,94.28,94.46,0.83,0.999,5.5548,0.5751,96.63
+oodabc_cifar10_c_seed1,cifar10,c,1,299,70.13,94.71,0.0537,0.945,4.008,1.4829,71.87
+oodabc_cifar10_c_seed2,cifar10,c,2,299,82.61,94.82,0.0473,0.95,4.492,1.2313,86.33
+oodabc_cifar10_cur_seed1,cifar10,cur,1,299,92.89,94.52,0.869,0.999,5.3381,0.5757,92.8
+oodabc_gtsrb_a_seed1,gtsrb,a,1,299,49.46,99.92,0.577,1.0,7.2447,3.9264,52.87
+oodabc_gtsrb_a_seed2,gtsrb,a,2,299,50.72,99.9,0.5747,1.0,6.3233,3.5603,52.33
+oodabc_gtsrb_b_seed1,gtsrb,b,1,299,65.76,99.87,0.6813,1.0,6.6049,2.5326,66.9
+oodabc_gtsrb_c_seed1,gtsrb,c,1,299,3.27,99.95,0.0007,1.0,2.1178,10.836,4.33
+oodabc_gtsrb_c_seed2,gtsrb,c,2,299,4.02,99.95,0.001,1.0,2.1281,10.6477,4.93
+oodabc_gtsrb_cur_seed1,gtsrb,cur,1,299,84.45,99.84,0.871,1.0,5.8528,4.6506,85.3
