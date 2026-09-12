@@ -1,5 +1,20 @@
 # CLAUDE.md — OOD-Calibrated Target-Specific Trigger（新论文主线）
 
+> ⚠️ **2026-09-12 定位转向**：48h 机制验证结果 NO-GO（OOD 负校准作为攻击组件被证伪，
+> 见 `docs/ood_abc_results.md`——GTSRB 上 c 臂 3.3/4.0 vs a 49.5/50.7，特异性与可学性倒置）。
+> 按作者决定转向**防御导向的机制表征研究**：不再做更强 trigger，主问题收敛为——
+> *"clean-label、target-only 受限投毒下，trigger 何时能被稳定学习；OOD 作为实验变量
+> （非攻击增强组件）如何改变可学性边界、表征几何与检测难度。"*
+> 四个 RQ：① 可学性边界（poison rate / target 类样本量 / 触发器可见性 / 增强强度的相变曲线）
+> ② OOD 校准效应（无/近域/远域/diversity）③ 内部表征机制（特征距离、簇分离、神经元集中度、
+> layer-wise shift、增强一致性）④ **检测性-可学性关系**（不可学 / 可学易检 / 可学难检三区域）。
+> 指标三层：行为层（BA/ASR/方差）、表征层（feature distance/CKA/layer-wise）、防御层
+> （AUROC/TPR@低FPR/poison localization）。"可学"须多 seed 多架构稳定复现，不认单点 ASR。
+> **必须交涉的先行工作**：Zheng "Phase Transitions in Backdoor Learning"（ED50 阈值概念，
+> LLM 理论研讨稿）、Xian et al. ICML 2023 "Adaptability Hypothesis"（何时学到后门的理论）、
+> Gao et al. PR 2023（clean-label 对抗效应）、以及原有 Narcissus/NoiseAttack/BAAT 清单。
+> 现有 12 个训练完的模型（`results_ood/*/model_last.pth`）是 RQ③④ 的零成本起点资产。
+
 > 创建：2026-09-11。基线导入自 `../GeneralComponents-main` @ `df72457`（tag `v5.0-paper-frozen`）。
 > **旧仓库已冻结只读**（见其 `docs/BASELINE-FREEZE-2026-09-11.md`）。本仓库一切新产物写 `results_ood/` 与 `resource_ood/`，**绝不写回旧仓库或其 symlink 目标**。
 
