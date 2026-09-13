@@ -26,8 +26,10 @@ DS="$1"; GPU="$2"; SEED="$3"; shift 3
 EPOCHS="${EPOCHS:-300}"          # EPOCHS=150 bash scripts/run_ood_abc.sh ... -> short-schedule screening run
 EPOCHTAG="${EPOCH_TAG:-}"        # set EPOCH_TAG=_ep150 for short-schedule tags (else results collide with 300ep)
 POISON_RATE="${POISON_RATE:-}"   # POISON_RATE=0.001 -> override the dataset default; tag gets PRTAG
+OOD_WEIGHT="${OOD_WEIGHT:-1.0}"  # calibration term weight (arm c interpolation knob); tag gets WTAG
 PR="${POISON_RATE:-0.01}"
 PRTAG="${PRTAG:-}"
+WTAG="${WTAG:-}"
 PY=/media/hd1/wangxin/work7-7month/.conda-envs/GeneralComponents/bin/python
 cd "$(dirname "$0")/.."
 
@@ -59,7 +61,7 @@ for ARM in "$@"; do
     cur) POOL="nontarget"; CALIB="none" ;;
     *) echo "unknown arm $ARM (a|b|c|cur)"; continue ;;
   esac
-  TAG="oodabc_${DS}_${ARM}_seed${SEED}${EPOCHTAG}${PRTAG}"
+  TAG="oodabc_${DS}_${ARM}_seed${SEED}${EPOCHTAG}${PRTAG}${WTAG}"
   ST="./resource_ood/triggers/${TAG}"
   RD="./results_ood/${TAG}"
   LAST_EP=$((EPOCHS - 1))
@@ -70,7 +72,7 @@ for ARM in "$@"; do
   echo "[run_ood_abc] $(date '+%F %T') launching $TAG on GPU$GPU (pool=$POOL calib=$CALIB epochs=$EPOCHS)"
   CUDA_VISIBLE_DEVICES="$GPU" $PY -u train_faat.py $COMMON \
     --seed "$SEED" --y_target 0 --epochs "$EPOCHS" \
-    --global_mode ood --ood_pool "$POOL" --ood_calib "$CALIB" --ood_weight 1.0 \
+    --global_mode ood --ood_pool "$POOL" --ood_calib "$CALIB" --ood_weight "$OOD_WEIGHT" \
     --fix_global \
     --save_trigger "$ST" --result_dir "$RD" --train --gpu "$GPU"
   echo "[run_ood_abc] $(date '+%F %T') finished $TAG (exit $?)"
