@@ -49,6 +49,15 @@ elif [ "$DS" = "gtsrb" ]; then
     --ood_dataset cifar10 \
     --global_l2_budget 3.5 --global_steps 8000 --global_batch_size 128 \
     --steps 2000 --batch_size 48 --adaptive_l2_max 0.15 --eps_max 0.05"
+elif [ "$DS" = "cifar100" ]; then
+  # regime replication: many-class / medium-BA regime (paper Table-2 alignment, 0.5%)
+  COMMON="--dataset cifar100 --num_classes 100 --data_dir ./data100 \
+    --selection res --res_sel square --poison_rate ${PR:-0.005} --select_epoch 10 \
+    --output_dir ./resource/save_metric_100_res \
+    --proxy_path ./resource/faat/proxy/resnet18_clean_cifar100.pth \
+    --ood_dataset cifar10 \
+    --global_l2_budget 2.0 --global_steps 8000 --global_batch_size 128 \
+    --steps 2000 --batch_size 48 --adaptive_l2_max 0.15 --eps_max 0.05"
 else
   echo "unknown dataset $DS"; exit 1
 fi

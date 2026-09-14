@@ -20,7 +20,11 @@ ARMS="cifar10_a_seed1 cifar10_b_seed1 cifar10_c_seed1 cifar10_cur_seed1 cifar10_
       gtsrb_b_seed2 gtsrb_cur_seed2 \
       gtsrb_c_seed1_w0.5 gtsrb_c_seed2_w0.5 gtsrb_c_seed1_w0.25 gtsrb_c_seed2_w0.25 \
       gtsrb_cur_seed1_pr0.0005 gtsrb_cur_seed2_pr0.0005 gtsrb_cur_seed1_pr0.001 gtsrb_cur_seed2_pr0.001 \
-      gtsrb_cur_seed1_pr0.005 gtsrb_cur_seed2_pr0.005"
+      gtsrb_cur_seed1_pr0.005 gtsrb_cur_seed2_pr0.005 \
+      gtsrb_c_seed1_w0.05 gtsrb_c_seed2_w0.05 gtsrb_c_seed3_w0.05 \
+      gtsrb_c_seed1_w0.1 gtsrb_c_seed2_w0.1 gtsrb_c_seed3_w0.1 \
+      gtsrb_c_seed1_w0.15 gtsrb_c_seed2_w0.15 gtsrb_c_seed3_w0.15 \
+      cifar100_a_seed1 cifar100_b_seed1 cifar100_c_seed1 cifar100_cur_seed1"
 BK=/media/hd0/wangxin/backup/ood_abc_20260911
 STATUS=results_ood/STATUS.md
 DEADLINE=$(( $(date +%s) + 60*3600 ))
