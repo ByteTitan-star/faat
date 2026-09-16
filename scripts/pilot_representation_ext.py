@@ -119,13 +119,14 @@ def main():
         tag = os.path.basename(rdir)
         if tag.endswith('_ep150'):
             continue
-        dataset = 'cifar10' if 'cifar10' in tag else 'gtsrb'
+        dataset = ('cifar100' if 'cifar100' in tag else
+                   ('cifar10' if 'cifar10' in tag else 'gtsrb'))
         tdir = os.path.join('resource_ood', 'triggers', tag)
-        if not os.path.exists(os.path.join(tdir, 'global_delta.npy')):
+        if not os.path.exists(os.path.join(tdir, 'global_delta.npy')) or not os.path.exists(os.path.join(rdir, 'model_last.pth')):
             continue
         dg = torch.from_numpy(np.load(os.path.join(tdir, 'global_delta.npy'))).float().to(dev)
         ck = torch.load(os.path.join(rdir, 'model_last.pth'), map_location='cpu')
-        model = ResNet18(num_classes=int(ck.get('num_classes', 10)))
+        model = ResNet18(num_classes=int(ck.get('num_classes', 10 if 'cifar10' in tag else (100 if 'cifar100' in tag else 43))))
         model.load_state_dict(ck['state_dict']); model.to(dev).eval()
 
         xt, xnt, nc, yt = load_test(dataset, 'data/GTSRB32' if dataset == 'gtsrb' else './data', dev)

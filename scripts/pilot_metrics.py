@@ -47,6 +47,8 @@ def last20_asr(log_path):
 def load_test(dataset, data_dir, device, cap_nt=3000, cap_t=1000):
     if dataset == 'cifar10':
         ds = datasets.CIFAR10('./data', train=False, transform=transforms.ToTensor())
+    elif dataset == 'cifar100':
+        ds = datasets.CIFAR100('./data100', train=False, transform=transforms.ToTensor())
     else:
         ds = datasets.ImageFolder(os.path.join(data_dir, 'val'),
                                   transform=transforms.Compose([transforms.Resize(32),
@@ -79,16 +81,17 @@ def main():
     rows = []
     for rdir in sorted(glob.glob('results_ood/oodabc_*')):
         tag = os.path.basename(rdir)
-        dataset = 'cifar10' if 'cifar10' in tag else 'gtsrb'
+        dataset = ('cifar100' if 'cifar100' in tag else
+                   ('cifar10' if 'cifar10' in tag else 'gtsrb'))
         tdir = os.path.join('resource_ood', 'triggers', tag)
-        if not os.path.exists(os.path.join(tdir, 'global_delta.npy')):
+        if not os.path.exists(os.path.join(tdir, 'global_delta.npy')) or not os.path.exists(os.path.join(rdir, 'model_last.pth')):
             continue
         dg = torch.from_numpy(np.load(os.path.join(tdir, 'global_delta.npy'))).float().to(dev)
         logs = sorted(glob.glob(os.path.join(rdir, 'output_*.log')))
         asr, ba, ep = last20_asr(logs[-1])
-        proxy_path = ('resource/faat/proxy/resnet18_clean_cifar10.pth' if dataset == 'cifar10'
-                      else 'resource/faat/proxy/resnet18_clean_gtsrb.pth')
-        proxy = load_proxy(proxy_path, 10 if dataset == 'cifar10' else 43, dev)
+        ncls = {'cifar10': 10, 'cifar100': 100, 'gtsrb': 43}[dataset]
+        proxy_path = 'resource/faat/proxy/resnet18_clean_%s.pth' % dataset
+        proxy = load_proxy(proxy_path, ncls, dev)
         xt, xnt, nc, yt = load_test(dataset, 'data/GTSRB32' if dataset == 'gtsrb' else './data', dev)
 
         # --- P1 axis: proxy response to delta (target / non-target pools) ---
