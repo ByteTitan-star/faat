@@ -30,6 +30,8 @@ OOD_WEIGHT="${OOD_WEIGHT:-1.0}"  # calibration term weight (arm c interpolation 
 PR="${POISON_RATE:-0.01}"
 PRTAG="${PRTAG:-}"
 WTAG="${WTAG:-}"
+MODEL="${MODEL:-resnet18}"       # MODEL=VGG16 bash scripts/run_ood_abc.sh ... -> cross-architecture check
+VTAG="${VTAG:-}"                 # set VTAG=_vgg16 (or whatever) when MODEL != resnet18 so tags don't collide
 PY=/media/hd1/wangxin/work7-7month/.conda-envs/GeneralComponents/bin/python
 cd "$(dirname "$0")/.."
 
@@ -70,7 +72,7 @@ for ARM in "$@"; do
     cur) POOL="nontarget"; CALIB="none" ;;
     *) echo "unknown arm $ARM (a|b|c|cur)"; continue ;;
   esac
-  TAG="oodabc_${DS}_${ARM}_seed${SEED}${EPOCHTAG}${PRTAG}${WTAG}"
+  TAG="oodabc_${DS}_${ARM}_seed${SEED}${EPOCHTAG}${PRTAG}${WTAG}${VTAG}"
   ST="./resource_ood/triggers/${TAG}"
   RD="./results_ood/${TAG}"
   LAST_EP=$((EPOCHS - 1))
@@ -80,7 +82,7 @@ for ARM in "$@"; do
   fi
   echo "[run_ood_abc] $(date '+%F %T') launching $TAG on GPU$GPU (pool=$POOL calib=$CALIB epochs=$EPOCHS)"
   CUDA_VISIBLE_DEVICES="$GPU" $PY -u train_faat.py $COMMON \
-    --seed "$SEED" --y_target 0 --epochs "$EPOCHS" \
+    --seed "$SEED" --y_target 0 --epochs "$EPOCHS" --model "$MODEL" \
     --global_mode ood --ood_pool "$POOL" --ood_calib "$CALIB" --ood_weight "$OOD_WEIGHT" \
     --fix_global \
     --save_trigger "$ST" --result_dir "$RD" --train --gpu "$GPU"

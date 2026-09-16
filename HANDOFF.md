@@ -88,18 +88,20 @@
 
 ## 6. 下一步清单
 
-### 线 A（FAAT，1-2 周内可投）
-1. 补 `paper/README.md` 列出的 `—` 占位（T1 4 格、T4 5 格、supp 2 格）；
-2. **核实 ablation_CLEAN 对照疑点**（ASR 61.7/90.3 疑非纯 clean，`results/ablation_CLEAN_*`）；
+### 线 A（FAAT，1-2 周内可投，**会议已定 CVPR 2027**）
+1. ~~补 `paper/README.md` 列出的 `—` 占位~~ **✅ 全部完成（2026-09-16）**：T1/T4/T7 无剩余 `—` 格。T1 CIFAR-100 MultiBpp 14.5/17.3（`results/kst_sdt/c100_bl_mbpp*`）、T1 Tiny MultiBpp-RGB/B **62.5/55.0**（复现，`bl_tiny_quantizeB_seed1` 单 seed BA 54.9）、T4 Narcissus s-dprime 0.16（同管线重放，KST 重放 4.6433 逐位验证）、**T4 BppAttack 整行 99.9/0.954/2.83/3.6e4/0.03**（`results/kst_sdt/bppattack_q24_28_8_pr0.05_s1_result.json`，5% dirty、24:28:8、与 KST/Narcissus 行同评估协议；行内 SSIM 用实测 0.954 替换引用 0.97 使整行同源）。supp T7 2 格此前已填。**唯一剩余：supp physical-robustness 图（JPEG/rotation/scaling 实验未跑）**——投稿前需作者决定是否补。
+   ⚠️ **bl_tiny 真相（2026-09-16 二次核实）**：先前"9 个 bl_tiny run 无效（BA 14%）"是**解析 bug**（CleanLoss 列误读为 CleanACC）。全部有效（BA≈55），正确末20均 3-seed：BadNets-C **89.3±3.6** / Blended-C **79.3±1.4** / MultiBpp-RGB **62.5±1.7**（32×32 crop 管线、res-square、0.25%）。远高于 T1 引用的原论文 39.0/43.9（64×64+9×9 patch 管线，不同设定不可比）。**作者决策（2026-09-16）：T1 Tiny 行 BadNets/Blended 保留引用数字**（headline +51.9 不变），caption 已明确披露 cited vs reproduced 与管线差异；matched 复现数字存档于 `paper/README.md` 供审稿回应；Limitations 同步。
+2. ~~核实 ablation_CLEAN 对照疑点~~ **✅ 已核实（2026-09-16）**：`ablation_CLEAN_*` = **干净版无 adaptive 消融**，不是 clean 对照（"CLEAN"指修复了首次消融 `ablation_scale*_noAdp` 的 δ_global 污染）。配置实锤：poison_rate=0.01（投毒 500 张）+ faat + faat_eps=0 + 加载 `resource/faat/v3_1/scale_X` Narcissus 触发器；日志复算末20均 PoisonACC 61.68/90.34 与文档一致。**真正要弃用的是旧 Table 6 的 no-Adp 20.3/62.7（污染数据）**；论文 `tab_ablation.tex` 本来就用对了（δ_global only 90.3 行，SSIM 0.963/L2 1.313 已独立复算吻合）。`all_result.md`/`docs/paper_tables.md` 错误记录已就地更正（保留原文痕迹）；
 3. **FAAT novelty 冲突地图（2026-09-16 查证）**：
    - 🔴 δ_global ↔ Narcissus（CCS 2023）：直接冲突面。Narcissus 核心机制就是 optimized universal noise；v3.1 用其 artifact、v4 同目标重优化（代码注释自认 "precisely the Narcissus objective"）。related work 必须第一段正面区分，定位句：**"通用方向触发器在困难 regime 崩溃（自家 GTSRB/大类数据证明），FAAT 的 adaptive+alignment 机器让该范式在 4 数据集活下来并规避防御——贡献是机器+证据，不是方向本身"**；
    - 🟡 L_align ↔ 质心对齐家族（ESWA 2025 sample-customized feature alignment、FFCBA arXiv 2504.21054、Zeng/Luo/Ma 特征空间优化线）：自家消融证明 L_align 非 ASR 核心（去掉仍 96.4%）→ **不做 novelty 主张**，定位 defense-shaping 组件；
-   - 🟢 δ_adaptive（冻结全局+有界逐图残差+预算耦合）= novelty 承重墙（去掉崩到 20.3）：投稿前必须对 ISSBA/BAAT/逐图优化类**专门查重一次**（当前清单缺失项）；
+   - 🟢 δ_adaptive（冻结全局+有界逐图残差+预算耦合）= novelty 承重墙。⚠️ 支撑数字已修订（2026-09-16 核实）：干净消融下 adaptive 贡献 **+9.3（scale0.1：61.7→70.96）/ +4.5（scale0.2：90.3→94.81）**，越小的扰动预算贡献越大——正确定位是"低预算下的 ASR 效率组件"，~~"去掉崩到 20.3"~~（20.3 来自污染消融，勿引用）；guidance 主导时 adaptive 冗余（gs1.0+noAdp 仍 100）。
+   - ✅ **δ_adaptive 专门查重已完成（2026-09-16）**：ISSBA（隐写 encoder 全逐图、poisoned-label）/ BAAT（TDSC 2025，语义属性触发器、clean-label）/ COMBAT（AAAI 2024，generator 交替训练）/ Luo 2206.04881（two-phase image-specific，最近邻）/ CVPR2020-video（universal adv trigger，无逐图部分）/ FIBA（频域 universal）/ TDSC 2025 color-space（正交视角）——**全部已发表工作在测试期触发器都是逐样本或 universal 的单层设计，无"冻结全局测试期 + 训练期专用有界逐图残差"的分解先例**。差异句已写入 `paper/sections/02_related.tex`（sample-specific 段）+ 4 条新 bib（zhu2025baat/huynh2024combat/luo2022twophase/nguyen2024noiseattack，部分带 verify 标记待清查）；KST 段已加 NoiseAttack 区分（universal+结构平坦谱 vs 逐样本）。论文已重编译通过（9 页，0 undefined）。
    - KST 部分照旧加 NoiseAttack 区分；refs.bib verify 标记清查；
-4. 加 Limitations 节；决定会议（CVPR 类攻击侧）。
+4. ~~加 Limitations 节~~ **✅ 已完成（2026-09-16）**：`paper/sections/09b_limitations.tex`（单架构 / CIFAR-100+Tiny 引用格与 bl_tiny 废弃 run 如实声明 / 4 防御覆盖 / GTSRB 隐蔽代价），编译通过正文仍在 8 页内；README 数据完整性政策已同步。**会议已定（2026-09-16 作者拍板）：CVPR 2027**（≈2026-11 中截稿，格式已就绪）。
 
 ### 线 B（表征，补缺口→写作）
-1. **cross-architecture 验证**（最优先——单架构是最大 caveat）：`cifar_resnet.py` 有 VGG 等现成变体，重跑 a/c/cur 臂即可；
+1. **cross-architecture 验证**（最优先——单架构是最大 caveat）：**✅ 行为层已完成（2026-09-16）**：VGG16 a/c/cur 三臂 × seed1 × 300ep 全部跑完（`results_ood/oodabc_cifar10_{a,c,cur}_seed1_vgg16/`）。**结果：排序不变性跨架构保持**——cur **88.2** > a **82.4** > c **62.8**（BA 均 92.7-93.1），与 ResNet18 的 cur≈b>a>c 排序一致 ✅。但 **c 臂校准阶跃在 VGG16 上变浅**（c 62.8 非零获取，vs ResNet18 的 0/18 全灭）——OOD 负校准的"致命性"部分依赖架构，是写作素材（"the calibration cliff softens on VGG16"）。单 seed，排序结论待 seed2/3 加固。代码改动（跑通未 git 提交）：`train_backdoor.py` --model choices 加 VGG16 + 传 num_classes；`models/VGG16.py` __init__ 加 num_classes 参数（默认 10 不破坏旧调用）；`scripts/run_ood_abc.sh` 加 MODEL/VTAG env。注意：触发器优化阶段 proxy 仍是 resnet18（合理 surrogate 迁移设定）；表征层指标（gini/CKA）如写死 ResNet18 特征接口需适配 VGG16 的 fc_2(128维) penultimate——行为层已先行；
 2. 检测层补全：STRIP（`faat/defenses.py:strip_detection`）、NC（未实现，需写）、FP（`defenses.py:fine_pruning_defense`）；
 3. 可选：FAAT-as-trigger-family 进相图（用冻结仓库配方）；
 4. 写作：相图主图（预算×校准×P_L）+ 机制链图 + 检测解耦散点；会议定位 S&P/USENIX/CCS analysis 风格或 ICLR/NeurIPS。
@@ -133,6 +135,7 @@
 ## 8. 已知坑（重踩过，勿再踩）
 
 1. train_backdoor 日志按 seed 命名：seed2/3 是 `output_2/3.log`，不是 `output_1.log`；
+1b. **日志解析必须锚定全列**（2026-09-16 教训）：列序 = epoch/lr/time/TrainLoss/TrainACC/PoisonLoss/**PoisonACC(第7列=ASR)**/CleanLoss/**CleanACC(第9列=BA)**。用部分正则会把 CleanLoss 当 BA——曾因此误判 9 个 bl_tiny run "BA 14% 废弃"，实际全部有效（BA≈55）。任何新解析先交叉验证一个已知 run；
 2. 多进程**不得**追加写同一日志文件（互覆写，丢输出）；
 3. Bash 后台链 `cd X && nohup ... & cmd2` 的 `&` 会把 cd 困在子壳——统一用 `setsid nohup bash -c "cd ABS && ..."` + 绝对路径日志；
 4. GPU 与他人共享：只占 ≥4GB 空闲的卡；瞬时 CUDA fault（unspecified launch failure）发生过 3 次，失败 run 查启动器日志后重发即可；

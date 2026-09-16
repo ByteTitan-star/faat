@@ -96,7 +96,7 @@ def attach_index(path, index, suffix=""):
     return f"{prefix}_{index}{suffix}"
 
 parser = argparse.ArgumentParser(description='Evaluate backdoor attack with different selection methods')
-parser.add_argument('--model', default='resnet18', choices=['resnet18', 'resnet50', 'resnet34'])
+parser.add_argument('--model', default='resnet18', choices=['resnet18', 'resnet50', 'resnet34', 'VGG16'])
 parser.add_argument('--selection', default='res', choices=['random', 'loss', 'grad', 'forget', 'res', 'stealth'])
 parser.add_argument('--res_sel', default='linear', choices=['max', 'exp', 'linear', 'log', 'square', 'num', 'third', 'poison'])
 parser.add_argument('--batch_size', type=int, default=128, help='input batch size for training (default: 128)')
@@ -289,7 +289,7 @@ elif args.model == "SqueezeNet":
     model = SqueezeNet()
 elif args.model == "VGG16":
     from models.VGG16 import *
-    model = VGG16()
+    model = VGG16(num_classes=num_classes)
 elif args.model == "GoogLeNet":
     from models.GoogLeNet import *
     model = GoogLeNet()

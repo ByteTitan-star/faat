@@ -18,7 +18,7 @@ class BasicConv2d(nn.Module):
 
 
 class VGG16(nn.Module):
-    def __init__(self):
+    def __init__(self, num_classes=10):
         super(VGG16, self).__init__()
 
         self.conv_1_1 = BasicConv2d(3, 64, 3, padding=(1, 1))
@@ -48,7 +48,7 @@ class VGG16(nn.Module):
         self.dp_1 = nn.Dropout()
         self.fc_2 = nn.Linear(256, 128)
         self.bn_1 = nn.BatchNorm1d(128)
-        self.fc_3 = nn.Linear(128, 10)
+        self.fc_3 = nn.Linear(128, num_classes)
 
     def forward(self, x):
 
