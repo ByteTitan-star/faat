@@ -33,6 +33,8 @@
 
 **三篇论文的叙事弧**：Wicked Oddities（ICLR 2025，投毒哪些样本）→ FAAT（用什么触发器）→ 表征论文（什么时候学得会、什么时候检得到）。
 
+**意图澄清（09-16，作者原话级）**：FAAT **本身就是作者自研的触发器范式**（初心已由 FAAT 实现一次：攻击高效+防御无效两件事 FAAT 论文都证了）。新实验里的 a/b/c/cur 臂是**简化消融触发器（仅 δ_global），不是 FAAT**——讨论"新范式"时勿把两者混淆。初心论文 = FAAT；下一代范式的前沿 = GTSRB 极自信墙（FAAT 在此付隐蔽性代价，是其自身遗留的开放问题）。
+
 ---
 
 ## 3. 线 B 最终实验结论（51 run，全部可复算）
@@ -89,7 +91,11 @@
 ### 线 A（FAAT，1-2 周内可投）
 1. 补 `paper/README.md` 列出的 `—` 占位（T1 4 格、T4 5 格、supp 2 格）；
 2. **核实 ablation_CLEAN 对照疑点**（ASR 61.7/90.3 疑非纯 clean，`results/ablation_CLEAN_*`）；
-3. related work 加 NoiseAttack 区分（KST 部分）；refs.bib verify 标记清查；
+3. **FAAT novelty 冲突地图（2026-09-16 查证）**：
+   - 🔴 δ_global ↔ Narcissus（CCS 2023）：直接冲突面。Narcissus 核心机制就是 optimized universal noise；v3.1 用其 artifact、v4 同目标重优化（代码注释自认 "precisely the Narcissus objective"）。related work 必须第一段正面区分，定位句：**"通用方向触发器在困难 regime 崩溃（自家 GTSRB/大类数据证明），FAAT 的 adaptive+alignment 机器让该范式在 4 数据集活下来并规避防御——贡献是机器+证据，不是方向本身"**；
+   - 🟡 L_align ↔ 质心对齐家族（ESWA 2025 sample-customized feature alignment、FFCBA arXiv 2504.21054、Zeng/Luo/Ma 特征空间优化线）：自家消融证明 L_align 非 ASR 核心（去掉仍 96.4%）→ **不做 novelty 主张**，定位 defense-shaping 组件；
+   - 🟢 δ_adaptive（冻结全局+有界逐图残差+预算耦合）= novelty 承重墙（去掉崩到 20.3）：投稿前必须对 ISSBA/BAAT/逐图优化类**专门查重一次**（当前清单缺失项）；
+   - KST 部分照旧加 NoiseAttack 区分；refs.bib verify 标记清查；
 4. 加 Limitations 节；决定会议（CVPR 类攻击侧）。
 
 ### 线 B（表征，补缺口→写作）
