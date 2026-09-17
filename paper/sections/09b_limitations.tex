@@ -1,0 +1,30 @@
+\section{Limitations}
+\label{sec:limitations}
+
+\paragraph{Architecture and scope.}
+All victims use ResNet-18; we have not verified that the acquisition behavior
+of $\dglobal{+}\dadapt$ transfers to other architectures (e.g.\ VGG,
+transformers), nor to tasks beyond image classification.
+
+\paragraph{Baseline coverage.}
+On CIFAR-100, the BadNets-C and Blended-C entries of Table~\ref{tab:main} are
+cited from the original component paper rather than re-run by us. On
+Tiny-ImageNet, the original paper evaluates in a different pipeline
+($64{\times}64$ inputs, $9{\times}9$ patches) than our $32{\times}32$ pipeline,
+so its numbers are not directly comparable to ours; matched numbers and any
+remaining cells are flagged in the table caption.
+
+\paragraph{Defense coverage.}
+Our evaluation covers four representative defenses spanning sample-level
+detection (AC, SS, STRIP) and model-level mitigation (Fine-Pruning). Adaptive
+or certified defenses, and defenses specifically designed against
+feature-aligned poisoning, are out of scope.
+
+\paragraph{Stealth in the high-confidence regime.}
+On GTSRB (Sec.~\ref{sec:gtsrb}), FAAT buys ASR by spending stealth
+($\ell_2\!=\!3.5$, AC-AUC $0.76$): in the saturated-confidence regime our
+pipeline currently occupies the attack-over-stealth side of the Pareto
+exchange rather than resolving it. Charting that wall---whether any
+clean-label trigger can stay both learnable and stealthy against an
+overconfident victim---is the open problem this paper deliberately leaves
+open.

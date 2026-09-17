@@ -1,0 +1,24 @@
+% GTSRB stress-test: three trigger paradigms vs an overconfident victim (BA~100).
+% Sources: docs/GTSRB-BASELINES.md (baselines), data_faat_summary.csv (FAAT L2=3.5),
+%          gtsrb_kst_e48_forget/output_1.log (KST final), KST SSIM at eps20 (clean-label_summary).
+\begin{table}[t]
+\centering
+\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{l l c c c c}
+\toprule
+Paradigm & Method & ASR$\uparrow$ & SSIM$\uparrow$ & AC$\downarrow$ & BA \\
+\midrule
+fixed (visible)   & BadNets-C / MultiBpp & 0.0 & --- & --- & 99.9 \\
+fixed (blend)     & Blended-C            & 34.1 & --- & --- & 99.9 \\
+flat-spectrum     & KST ($\varepsilon$20) & 0.0 & \textbf{0.94} & --- & 100.0 \\
+optimized adaptive& \textbf{FAAT} (Ours) & \textbf{82.7} & 0.72 & 0.76 & 99.8 \\
+\bottomrule
+\end{tabular}
+\caption{\textbf{GTSRB stress test} (43 classes, victim BA$\approx\!100\%$,
+$1\%$ clean-label, 189 samples). Fixed triggers are drowned out; the
+flat-spectrum KST stays stealthy but cannot flip the overconfident victim
+(ASR $0.0$\%); only the optimized adaptive FAAT succeeds, at the cost of
+stealth. No method is simultaneously strong and stealthy in this regime.}
+\label{tab:gtsrb}
+\end{table}

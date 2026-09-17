@@ -1,0 +1,25 @@
+\begin{abstract}
+Clean-label backdoor attacks are appealing because they leave poison-label
+annotations untouched, yet current methods become unreliable when the victim
+task is hard---many-class, low-poison-rate, or high-base-accuracy regimes where
+a small, fixed trigger is diluted by the strong benign signal.
+We present \textbf{FAAT} (Feature-Aligned Adaptive Trigger), a clean-label
+attack composed of three generalized components: (i) a \emph{frozen global
+direction} $\dglobal$ that supplies a strong, transferable backdoor signal;
+(ii) a \emph{bounded adaptive residual} $\dadapt$ shaped in the DCT domain that
+restores effectiveness while staying imperceptible; and (iii) a
+\emph{feature-alignment loss} $\Lalign$ that pulls poisoned representations
+toward the target class so sample-clustering defenses cannot isolate them.
+FAAT is trained self-containedly, with no external pre-optimized noise.
+On CIFAR-10, CIFAR-100 and Tiny-ImageNet, FAAT raises attack success rate
+by $+3.9$ to $+51.9$ points over the strongest reproduced clean-label baseline,
+with benign accuracy intact (SSIM $0.92$--$0.98$, $\ell_2\!\le\!1.5$ on natural
+images), and is not flagged by Activation Clustering, Spectral Signatures,
+STRIP or Fine-Pruning. As a complementary contribution we introduce \textbf{KST},
+a trigger whose spectrum is \emph{structurally flat} (peak/median $\approx\!1.0$,
+vs.\ $68.8$ for Narcissus), defeating frequency-domain defenses at ASR parity.
+Finally, we treat GTSRB not as a fourth dataset but as a \emph{stress test of
+overconfident victims} (BA$\approx\!100\%$): there, fixed, flat-spectrum and
+adaptive triggers each reveal a distinct failure mode, exposing a fundamental
+ASR--stealth trade-off that tightens as victim confidence grows.
+\end{abstract}

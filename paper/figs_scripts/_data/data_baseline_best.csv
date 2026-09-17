@@ -1,0 +1,5 @@
+attack,selection,ASR_mean20,BA_mean20
+BadNets-C,res_square,70.62,94.85
+Blended-C,res_linear,75.86,94.58
+MultiBpp-RGB,res_linear,85.09,94.8
+MultiBpp-B,res_linear,89.7,94.41

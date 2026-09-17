@@ -1,0 +1,37 @@
+\section{Main Results}
+\label{sec:main}
+
+\input{floats/figures_tex/f2_arch}
+\input{floats/figures_tex/f3_main_asr}
+
+\paragraph{FAAT outperforms every clean-label baseline on every dataset.}
+Table~\ref{tab:main} and Fig.~\ref{fig:main} report ASR at matched poison rates.
+On CIFAR-10 ($1\%$), FAAT reaches $93.6\%$, $+3.9$ over the strongest reproduced
+baseline (MultiBpp-B, $89.7\%$). The gap widens sharply on harder regimes: on
+CIFAR-100 ($0.5\%$) FAAT scores $98.5\%$ vs.\ $85.1\%$ for the best baseline
+($+13.4$); on Tiny-ImageNet ($0.25\%$, $200$ classes) $95.8\%$ vs.\ $43.9\%$
+($+51.9$); and on GTSRB ($1\%$) $82.7\%$ while two of four baselines collapse to
+$0\%$ and the best reaches only $34.1\%$ ($+48.6$). \textbf{Benign accuracy is
+preserved}: $\ba$ is within one point of the clean model in all rows
+($94.8$/$77.6$/$99.8$/$54.7$ respectively).
+
+\paragraph{Why prior baselines collapse, and why FAAT does not.}
+On many-class / low-poison / high-BA tasks the benign signal dominates and a
+small \emph{fixed} trigger is learned weakly or not at all---exactly the
+BadNets/MultiBpp $0\%$ we observe on GTSRB. FAAT's frozen $\dglobal$ injects a
+strong shared direction that is not diluted, and $\dadapt$ adapts per image to
+recover the residual effectiveness the fixed trigger loses (Tab.~\ref{tab:ablation}).
+
+\input{floats/figures_tex/f4_pareto}
+
+\paragraph{Stealth--effectiveness trade-off.}
+Figure~\ref{fig:pareto} places methods on the ASR--SSIM plane. FAAT traces its
+$\ell_2$ budget $\{0.9,1.2,1.5\}$; at the operating point ($\ell_2\!=\!1.5$,
+SSIM $0.95$) it reaches $93.6\%$ ASR, dominating Narcissus
+($\asr\!\approx\!0.88$, SSIM $0.946$) and BppAttack (SSIM $\approx\!0.97$ but
+lower ASR). Lower budgets trade ASR for stealth: $\ell_2\!=\!0.9$ gives SSIM
+$0.98$ at $76.1\%$ ASR, and $\ell_2\!=\!1.2$ gives $88.6\%$ at SSIM $0.967$---a
+smooth, selectable frontier. The per-$\ell_2$ numbers are stable across 3 seeds
+($\sigma_{\asr}\!\le\!2.5$, see supp.).
+
+\input{floats/tables/tab_main}

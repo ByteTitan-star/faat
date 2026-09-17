@@ -1,0 +1,61 @@
+\section{Introduction}
+\label{sec:intro}
+
+Deep neural networks are known to be vulnerable to \emph{backdoor attacks}: an
+adversary poisons a fraction of the training data so that the learned model
+behaves normally on clean inputs but misclassifies any input bearing a trigger
+to a target label~\cite{gu2017badnets}. Most early attacks
+\emph{flip the label} of poisoned samples, which is easy to spot under visual
+inspection. \textbf{Clean-label} attacks~\cite{turner2018labelconsist,chen2019blended}
+are stealthier: poisoned samples keep their \emph{true} (target-class) label, so
+the attack is invisible to label-level auditing. Their price is effectiveness:
+without a label signal telling the model \emph{where} the trigger is, the model
+must discover the trigger on its own, which requires either large triggers or
+careful sample selection.
+
+A recent line of work~\cite{generalcomponents2025} systematizes this with three
+\emph{generalized components}---a quantization/blend trigger, a sample-selection
+criterion, and a clean-label training protocol---and shows that the right
+combination (e.g.\ a residual-squared selection) recovers competitive attack
+success rates (ASR) on CIFAR-10. \textbf{However, the approach is brittle beyond
+that comfort zone.} We reproduce these components faithfully and observe two
+failure modes (Fig.~\ref{fig:main}): (1) on \emph{many-class / low-poison}
+regimes (CIFAR-100 at $0.5\%$, Tiny-ImageNet at $0.25\%$) the strongest baseline
+reaches only $\sim$44--85\% ASR; (2) on \emph{high-base-accuracy} tasks
+(GTSRB, BA$\approx$100\%) the fixed trigger is diluted to $\le 34\%$ ASR---and
+two of four baselines collapse to $0\%$. In all cases the benign task is so
+easily learned that the tiny poison signal is washed out.
+
+We argue the fix is to make the trigger \emph{adaptive and feature-aware} rather
+than fixed. We propose \textbf{FAAT} (Feature-Aligned Adaptive Trigger), which
+adds three components on top of the clean-label framework:
+\begin{itemize}[leftmargin=*,topsep=2pt,itemsep=1pt]
+  \item A \textbf{frozen global direction} $\dglobal$ (Narcissus-style~\cite{zeng2023narcissus})
+        supplies a strong, transferable backdoor signal that is robust to benign dilution.
+  \item A \textbf{bounded adaptive residual} $\dadapt$, optimized \emph{per poisoned
+        image} in the DCT domain and clipped to a small $\ell_2$ budget, restores
+        attack effectiveness without sacrificing imperceptibility.
+  \item A \textbf{feature-alignment loss} $\Lalign$ pulls the representations of
+        poisoned samples toward the target-class centroid, so that
+        Activation-Clustering~\cite{chen2018activation} and
+        Spectral-Signature~\cite{tran2018spectral} defenses cannot separate them
+        from clean target-class samples.
+\end{itemize}
+All three are trained \emph{self-containedly}---FAAT does not depend on any
+external pre-optimized noise, unlike Narcissus. Across CIFAR-10, CIFAR-100 and
+Tiny-ImageNet, FAAT improves ASR by $+3.9$ to $+51.9$ points over the strongest
+reproduced baseline (Tab.~\ref{tab:main}), preserves benign accuracy, stays
+stealthy (SSIM $0.92$--$0.98$), and is not flagged by four sample-level defenses
+(Tab.~\ref{tab:defense}). As a complementary contribution, \textbf{KST} is a
+trigger variant whose DFT spectrum is \emph{structurally flat}
+(peak/median $\approx\!1.0$ vs.\ $68.8$ for Narcissus), providing the first
+clean-label trigger that defeats frequency-domain defenses at ASR parity
+(Sec.~\ref{sec:kst}).
+
+\paragraph{Contributions.} (1) FAAT, a self-contained clean-label backdoor with
+a frozen global direction, a bounded DCT adaptive residual, and a
+feature-alignment loss; (2) state-of-the-art clean-label ASR on three datasets,
+especially on hard regimes where prior baselines collapse; (3) a systematic
+defense evaluation showing FAAT evades sample-filtering defenses; (4) KST, a
+flat-spectrum trigger that structurally evades frequency-domain
+defenses.

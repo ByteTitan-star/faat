@@ -1,0 +1,28 @@
+% T4 — KST flat-spectrum trigger vs references (CIFAR-10, 5% dirty-label, eps=16/255).
+% Source: data_kst_eps.csv (kst_eps0.063_pr0.05_s1_result.json; narcissus_eps0.063_pr0.05_s1_result.json).
+% Narcissus s-dprime computed 2026-09-16 by replaying the identical pipeline
+% (same zca.pt, same KST(r=4) scorer, same xte[:2000]; KST replay reproduces 4.6433 exactly):
+% script /tmp/calc_narcissus_sdprime.py, deltas resource/kst_sdt/narc_delta_eps0.0627.pt.
+% BppAttack row (2026-09-16): results/kst_sdt/bppattack_q24_28_8_pr0.05_s1_result.json —
+% same eval protocol (5% dirty, 300-ep ResNet-18, eval_asr), quantization 24:28:8
+% (matches the SSIM~0.97 reference in docs/SATURATION-ANALYSIS.md §3; our measured
+% SSIM on 256 test images is 0.954, all cells below from that single run).
+% spec-peak = max/median |F(delta)|^2 (1.0 = perfectly flat).
+\begin{table}[t]
+\centering
+\small
+\begin{tabular}{l c c c c c}
+\toprule
+Trigger & ASR$\uparrow$ & SSIM$\uparrow$ & $\ell_2$$\downarrow$ & spec-peak$\downarrow$ & s-dprime$\uparrow$ \\
+\midrule
+Narcissus & 99.8 & 0.946 & 1.64 & 68.8 & 0.16 \\
+BppAttack & 99.9 & 0.954 & 2.83 & $3.6{\times}10^4$ & 0.03 \\
+\textbf{KST (Ours)} & \textbf{99.8} & \textbf{0.961} & \textbf{1.33} & \textbf{1.0} & 4.64 \\
+\bottomrule
+\end{tabular}
+\caption{\textbf{KST achieves ASR parity with Narcissus while keeping the
+spectrum flat} (peak/median $\approx\!1.0$ vs.\ $68.8$), at higher SSIM and lower
+$\ell_2$. The flat spectrum is a structural property that defeats
+frequency-domain defenses.}
+\label{tab:kst}
+\end{table}

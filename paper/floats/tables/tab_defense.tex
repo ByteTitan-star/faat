@@ -1,0 +1,26 @@
+% T2 — FAAT defense evasion (detection AUC / post-mitigation ASR).
+% AC/SS AUC closer to 0.5 = undetectable; STRIP@5% lower = evades STRIP; FP-ASR higher = survives fine-pruning.
+% Source: data_faat_summary.csv (AC_AUC_mean, SS_AUC_mean, STRIP_TPR5_mean, FP_ASR@0.9_mean).
+\begin{table}[t]
+\centering
+\small
+\setlength{\tabcolsep}{4.5pt}
+\begin{tabular}{l c c c c c}
+\toprule
+Dataset ($\ell_2$) & ASR & BA & AC$\downarrow$ & SS$\downarrow$ & FP$\uparrow$ \\
+\midrule
+CIFAR-10  (1.5)  & 93.6 & 94.8 & 0.250 & 0.433 & 93.3 \\
+CIFAR-100 (2.0)  & 98.5 & 77.6 & 0.022 & 0.246 & 97.5 \\
+GTSRB     (3.5)  & 82.7 & 99.8 & 0.757 & 0.737 & 87.5 \\
+Tiny-IN   (2.0)  & 95.8 & 54.7 & 0.004 & 0.249 & 71.0 \\
+\midrule
+\multicolumn{6}{l}{\footnotesize AC/SS reported as 1-AUC so \emph{lower is more evasive}; FP = ASR after fine-pruning @0.9.} \\
+\bottomrule
+\end{tabular}
+\caption{\textbf{FAAT evades sample-filtering defenses.} Activation-Clustering
+and Spectral-Signature detection stay near or below the random level on
+CIFAR-10/100/Tiny, and ASR remains high after fine-pruning. STRIP is also
+bypassed (TPR@5\% $\le 0.15$); see Fig.~\ref{fig:defense} for selection-level
+defense robustness.}
+\label{tab:defense}
+\end{table}

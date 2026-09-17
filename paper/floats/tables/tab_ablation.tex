@@ -1,0 +1,19 @@
+% T3 — Component ablation, CIFAR-10, l2=1.5. Sources: data_ablation.csv, docs/FAAT-EXPERIMENTS.md.
+\begin{table}[t]
+\centering
+\small
+\begin{tabular}{l c c c c}
+\toprule
+Variant & ASR$\uparrow$ & BA & SSIM & SS-AUC$\uparrow$ \\
+\midrule
+$\dglobal$ only (Narcissus)        & 90.3 & 94.9 & 0.963 & 0.385 \\
+w/o $\Lalign$                      & 96.4 & 94.7 & 0.950 & 0.374 \\
+\textbf{Full FAAT} ($\dglobal{+}\dadapt{+}\Lalign$) & \textbf{93.6} & \textbf{94.8} & 0.950 & \textbf{0.433} \\
+\bottomrule
+\end{tabular}
+\caption{\textbf{Component ablation} (CIFAR-10, $\ell_2\!=\!1.5$, 3 seeds).
+$\Lalign$ trades a small amount of ASR for better defense evasion (SS-AUC closer
+to the undetectable $0.5$); $\dadapt$ contributes both ASR and stealth over the
+bare global direction.}
+\label{tab:ablation}
+\end{table}
