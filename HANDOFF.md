@@ -19,6 +19,7 @@
 | **线 B：表征/防御论文** | `/media/hd1/wangxin/work7-7month/ood-calibration`（活跃开发，main 分支） | **训练完成（51 run），待补缺口 + 写作** | clean-label 受限投毒的可学性边界相图 + 表征机制 + 检测解耦。核心文件：`docs/PILOT-OBSERVATIONS.md`（Obs1-6 全文）、`CLAUDE.md`（定位+纪律）、`docs/pilot_metrics.csv`（51 行）、`docs/pilot_representation.csv`（45 行）、`docs/figs_pilot/`、`scripts/analyze_all.py`（一键复算全部汇总表） |
 
 线 A 的备份：日志 tarball 在 `/media/hd0/wangxin/backup/` + GitHub `backup/results-logs` 分支。线 B 的日志同样在 hd0（`ood_*_logs_*.tar.gz`）+ git 逐 run 提交。
+**远程（2026-09-17 起）**：两线都推到 `github.com/ByteTitan-star/faat.git`——线 A = `exp/kst-sdt` 分支（论文 `468df37` 已推），线 B = `ood-calibration` 分支（ood-calibration 本地 main 跟踪它，`git push` 即推）。
 
 ---
 
