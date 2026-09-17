@@ -114,7 +114,9 @@
 
 ---
 
-## 6.5 初心对齐路线 —— 范式 #3 侦察（2026-09-16 定稿，作者批准）
+## 6.5 初心对齐路线 —— 范式 #3 侦察（2026-09-16 定稿，作者批准；09-17 Scout A 已裁）
+
+**09-17 侦察进展**：**Scout A 预筛 NO-GO 已砍**（`scripts/scout_a_pca_prescreen.py` → `docs/scout_a_prescreen.csv`）：目标类主成分方向三种构造全部惨败——top-1 PC Jacobian g_nt≈0.00、类中心差 Jacobian≈0.00、类均值模板 0.30 @L2=3.5（基准 cur 0.87）。按预注册纪律不上 victim。机制：自然变化方向（top-1 仅解释 50.5% 方差）不与决策边界对齐——**通用度必须显式优化获得，不是方向的自然属性**。这反证了 Narcissus 系优化方向的稀缺性。Scout B（轨迹感知）未启动，时间盒剩 5 天，启动前先看线 B 检测层/写作的进度。**FAAT 族相图点已完成**（`scripts/faat_family_phase.py` → `docs/pilot_faat_family.csv`）：GTSRB FAAT g_nt 0.82-0.88 ≈ cur 区（victim ASR 79.8-87.2），C100 L2=1.5→0.72-0.75/ASR 96-98、L2=2.0→0.90/98——proxy 通用度→ASR 映射**跨攻击族成立**，审稿"单一攻击族"质疑关闭（零重训，纯评估）。**相图主图已生成**（`scripts/gen_phase_diagram.py` → `docs/figs_paper/fig_phase_diagram.pdf`，4 面板：预算平坦/校准悬崖/通用度预测（pooled ρ=0.69, GTSRB ρ=0.89）/检测反相关）。**Design Implications 节草稿完成**（`docs/DESIGN-IMPLICATIONS.md`，范式 #3 设计委托 4 条）。
 
 **核心认知**：表征科学不是对初心的偏离，而是给范式设计造了加速器——proxy 通用度预测量（ρ=0.9）让任何新触发器候选可在**不训练 victim 的前提下几分钟预筛**（OOD 校准那次花 48h 是因为直接上 victim；今后"触发器阶段筛 → 存活者才配 victim"）。
 
