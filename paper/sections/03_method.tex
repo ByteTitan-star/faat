@@ -1,7 +1,17 @@
+%==============================================================================
+% 3. Method  (restructured 2026-09-17)
+%    3.1 Problem Formulation and Threat Model
+%    3.2 Overview of FAAT            <- Fig.2 framework figure lives HERE
+%    3.3 Global Trigger Generation
+%    3.4 Sample-Adaptive Residual
+%    3.5 Feature-Aligned Optimization
+%    3.6 Poison Construction and Victim Training
+%    (Algorithm moved to supplement; KST moved to Sec. 5 Further Analysis.)
+%==============================================================================
 \section{Method}
 \label{sec:method}
 
-\subsection{Threat model}
+\subsection{Problem Formulation and Threat Model}
 \label{sec:threat}
 We adopt the standard \emph{poison-only clean-label} setting~\cite{generalcomponents2025}:
 the adversary may modify a $\rho$ fraction of \emph{target-class} training images
@@ -11,7 +21,12 @@ attack success rate ($\asr$: fraction of triggered non-target test images
 classified as the target) at a low perturbation budget, while preserving benign
 accuracy ($\ba$) and evading defenses.
 
-\subsection{FAAT overview}
+\subsection{Overview of FAAT}
+\label{sec:overview}
+
+% Fig.2 (fig:arch) is \input at the end of 02_related.tex so it floats to the
+% top of the page where Method starts (see note there).
+
 A FAAT-poisoned image is
 \begin{equation}
 \tilde{x}_i \;=\; \mathrm{clip}\!\big(x_i \;+\; \dglobal \;+\; \dadapt^{(i)}\big),
@@ -25,7 +40,8 @@ Which target-class images $x_i$ are poisoned is decided by Component-A's
 \cite{generalcomponents2025}; the victim is trained with an additional
 \textbf{feature-alignment} loss. Fig.~\ref{fig:arch} summarizes the pipeline.
 
-\subsection{Component 1: frozen global direction $\dglobal$}
+\subsection{Global Trigger Generation}
+\label{sec:global}
 $\dglobal$ is a single, image-agnostic direction optimized \emph{once} (a
 self-contained Narcissus-style optimization~\cite{zeng2023narcissus} on a clean
 proxy, with no external pre-trained noise) to maximize the proxy's confidence on
@@ -34,7 +50,8 @@ shared across all poisoned samples, it provides a strong, low-variance backdoor
 signal that survives benign-signal dilution---the failure mode of fixed
 quantization/blend triggers on hard tasks (Sec.~\ref{sec:main}).
 
-\subsection{Component 2: bounded adaptive residual $\dadapt$}
+\subsection{Sample-Adaptive Residual}
+\label{sec:adapt}
 A small U-Net~\cite{ronneberger2015unet} $g_\phi$ produces a per-image residual
 $\dadapt^{(i)} = g_\phi(x_i)$. To keep the trigger imperceptible and to shape its
 frequency content, we constrain $\dadapt$ in the DCT domain:
@@ -49,7 +66,8 @@ natural images~\cite{lo2013dct}, so the residual is statistically aligned with
 benign high-frequency variance and hard to isolate. $\dadapt$ is what restores
 ASR when $\dglobal$ alone is insufficient (Tab.~\ref{tab:ablation}).
 
-\subsection{Component 3: feature-alignment loss $\Lalign$}
+\subsection{Feature-Aligned Optimization}
+\label{sec:align}
 Detection defenses cluster poisoned vs.\ clean features. We align them. Let
 $\mu_t$ be the running mean of clean target-class features at the penultimate
 layer and $f(\tilde{x}_i)$ the feature of a poisoned sample. We add
@@ -64,32 +82,9 @@ $\Lalign$ is a \emph{stealth} component: it slightly lowers peak ASR but moves
 poisoned features inside the target-class cluster, raising SS-AUC toward the
 undetectable $0.5$ (Tab.~\ref{tab:ablation}).
 
-\subsection{Training algorithm}
+\subsection{Poison Construction and Victim Training}
+\label{sec:training}
 $\dglobal$ is optimized first and frozen; then the victim and $g_\phi$ are
-trained jointly for $300$ epochs with the loss above. The full procedure is in
-Alg.~\ref{alg:faat}; it requires only the dataset and a target label.
-
-\begin{algorithm}[t]
-\caption{FAAT training (self-contained)}
-\label{alg:faat}
-\begin{algorithmic}[1]
-\REQUIRE dataset $\mathcal{D}$, target class $t$, poison rate $\rho$, budgets $\tau_{\ell_2},\tau_{\mathrm{DCT}}$
-\STATE Optimize global direction $\dglobal$ on a clean proxy; \textbf{freeze}.
-\STATE Select $\rho|\mathcal{D}_t|$ target-class images via res$_x^2$ criterion $\to$ poison set $\mathcal{P}$.
-\FOR{each epoch}
-  \STATE Sample batch; form $\tilde{x}_i = \mathrm{clip}(x_i + \dglobal + g_\phi(x_i))$ for $i\!\in\!\mathcal{P}$, projecting $g_\phi(x_i)$ onto Eq.~\ref{eq:bound}.
-  \STATE Update victim and $g_\phi$ by SGD on $\mathcal{L}_{\mathrm{CE}}^{\mathrm{clean}} + \lambda_{\mathrm{p}}\mathcal{L}_{\mathrm{CE}}^{\mathrm{poison}} + \lambda_{\mathrm{a}}\Lalign$.
-\ENDFOR
-\ENSURE victim model (backdoored).
-\end{algorithmic}
-\end{algorithm}
-
-\subsection{KST: a flat-spectrum trigger}
-\label{sec:kst-overview}
-As a complementary variant we introduce \textbf{KST} (Knowledge/Spectrum
-Trigger), which parameterizes the trigger by FFT \emph{phase} only and enforces
-a constant magnitude, so its DFT peak/median ratio is exactly $1.0$.
-Combined with the same Component-A selection, KST reaches ASR parity with
-Narcissus ($99.8\%$) while being invisible to frequency-domain defenses that
-extract spectral peaks (Narcissus has peak/median $\approx\!68.8$). KST is
-detailed in Sec.~\ref{sec:kst}.
+trained jointly for $300$ epochs with the loss above. The full procedure is
+given in the supplementary material; it requires only the dataset and a target
+label.

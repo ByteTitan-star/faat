@@ -1,4 +1,7 @@
-\section{KST: A Structurally Flat-Spectrum Trigger}
+% 5.1 KST (restructured 2026-09-17: was a top-level section; the former
+%     Method preview subsection was folded here — KST acronym expansion added
+%     at first mention)
+\subsection{KST: A Structurally Flat-Spectrum Trigger}
 \label{sec:kst}
 
 \input{floats/figures_tex/f8_kst}
@@ -8,7 +11,8 @@ Frequency-domain defenses isolate backdoors by detecting \emph{peaks} in the
 trigger's DFT---Narcissus, FTrojan~\cite{wang2021ftrojan} and the triggers
 of~\cite{zeng2021frequency} all concentrate energy in a few coefficients
 (Narcissus: peak/median $\approx\!68.8$, Fig.~\ref{fig:kst} right). \textbf{KST}
-removes that signature by construction: the trigger is parameterized by FFT
+(Knowledge/Spectrum Trigger) removes that signature by construction: the
+trigger is parameterized by FFT
 \emph{phase} only, with magnitude constrained to be constant, so its DFT
 peak/median ratio is $\approx\!1.0$ (Fig.~\ref{fig:kst} left).
 

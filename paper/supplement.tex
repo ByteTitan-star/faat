@@ -17,6 +17,29 @@ Clean-Label Backdoor Attacks}
 \begin{document}
 \maketitle
 
+\section{FAAT training procedure}
+\label{sec:alg-supp}
+Algorithm~\ref{alg:faat} gives the full self-contained training procedure of
+Sec.~3 of the main paper: the global direction $\dglobal$ is optimized first
+and frozen, the poison set is chosen by the res$_x^2$ criterion, and the victim
+and adaptive generator $g_\phi$ are then trained jointly. It requires only the
+dataset and a target label.
+
+\begin{algorithm}[h]
+\caption{FAAT training (self-contained)}
+\label{alg:faat}
+\begin{algorithmic}[1]
+\REQUIRE dataset $\mathcal{D}$, target class $t$, poison rate $\rho$, budgets $\tau_{\ell_2},\tau_{\mathrm{DCT}}$
+\STATE Optimize global direction $\dglobal$ on a clean proxy; \textbf{freeze}.
+\STATE Select $\rho|\mathcal{D}_t|$ target-class images via res$_x^2$ criterion $\to$ poison set $\mathcal{P}$.
+\FOR{each epoch}
+  \STATE Sample batch; form $\tilde{x}_i = \mathrm{clip}(x_i + \dglobal + g_\phi(x_i))$ for $i\!\in\!\mathcal{P}$, projecting $g_\phi(x_i)$ onto the $\ell_2$/DCT budget (Eq.~(2) of the main paper).
+  \STATE Update victim and $g_\phi$ by SGD on $\mathcal{L}_{\mathrm{CE}}^{\mathrm{clean}} + \lambda_{\mathrm{p}}\mathcal{L}_{\mathrm{CE}}^{\mathrm{poison}} + \lambda_{\mathrm{a}}\Lalign$.
+\ENDFOR
+\ENSURE victim model (backdoored).
+\end{algorithmic}
+\end{algorithm}
+
 \section{Per-dataset FAAT detail}
 \label{sec:faat-detail}
 Table~\ref{tab:faat-detail} gives FAAT's full per-$\ell_2$, 3-seed results

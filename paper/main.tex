@@ -40,18 +40,28 @@ Institution\\
 % ---------- Abstract ----------
 \input{sections/00_abstract}
 
-% ---------- Body ----------
-\input{sections/01_intro}
-\input{sections/02_related}
-\input{sections/03_method}
-\input{sections/04_setup}
-\input{sections/05_main_results}
-\input{sections/06_defense}
-\input{sections/07_ablation}
-\input{sections/08_kst}
-\input{sections/09_gtsrb_stress}
-\input{sections/09b_limitations}
-\input{sections/09_conclusion}
+% ---------- Body (restructured 2026-09-17: 6 top-level sections) ----------
+%  1 Introduction                sections/01_intro.tex
+%  2 Related Work                sections/02_related.tex
+%  3 Method                      sections/03_method.tex
+%      3.1 Problem Formulation and Threat Model
+%      3.2 Overview of FAAT      <- Fig.2 framework figure
+%      3.3 Global Trigger Generation
+%      3.4 Sample-Adaptive Residual
+%      3.5 Feature-Aligned Optimization
+%      3.6 Poison Construction and Victim Training
+%  4 Experiments                 sections/04_experiments.tex
+%      4.1 Experimental Setup / 4.2 Main Results / 4.3 Defense Robustness
+%      4.4 Ablation Study / 4.5 Stealth--Effectiveness Trade-off
+%  5 Further Analysis            sections/05_analysis.tex
+%      5.1 KST / 5.2 GTSRB stress test / 5.3 Discussion and Limitations
+%  6 Conclusion                  sections/09_conclusion.tex
+\input{sections/01_intro}         % 1
+\input{sections/02_related}       % 2
+\input{sections/03_method}        % 3
+\input{sections/04_experiments}   % 4
+\input{sections/05_analysis}      % 5
+\input{sections/09_conclusion}    % 6
 
 % ---------- References ----------
 {\small
