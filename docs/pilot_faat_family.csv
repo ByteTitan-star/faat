@@ -1,0 +1,8 @@
+tag,dataset,arm,seed,victim_asr,ba,proxy_gen_nontgt,proxy_gen_target,pull,sep,test_triggered_asr
+faatb_v4_gtsrb_l2_3.5_seed1,gtsrb,faat,seed1,,,0.882,1.0,6.4889,4.2044,87.23
+faatb_v4_gtsrb_l2_3.5_seed2,gtsrb,faat,seed2,,,0.817,1.0,5.2113,4.7554,79.77
+faatb_v4_gtsrb_l2_3.5_seed3,gtsrb,faat,seed3,,,0.8433,1.0,4.9188,5.0111,83.07
+faatb_v6c_cifar100_l2_1.5_seed1_p05,cifar100,faat,seed1_p05,,,0.73,0.96,8.5977,2.8925,97.47
+faatb_v6c_cifar100_l2_1.5_seed2_p05,cifar100,faat,seed2_p05,,,0.7197,0.94,8.3464,2.834,96.4
+faatb_v6c_cifar100_l2_1.5_seed3_p05,cifar100,faat,seed3_p05,,,0.7473,0.97,7.9628,3.2499,97.53
+faatb_v6c_cifar100_l2_2.0_seed1_p05,cifar100,faat,seed1_p05,,,0.902,0.98,8.3481,2.8499,98.23
