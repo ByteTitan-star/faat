@@ -1,0 +1,13 @@
+\begin{figure*}[t]
+\centering
+\includegraphics[width=\linewidth]{floats/figures/f14_physical_robustness.pdf}
+\caption{\textbf{Physical robustness} of FAAT (CIFAR-10, $\ell_2\!=\!1.5$, 3
+seeds, mean$\pm$std) under test-time transformations applied to the input
+before inference: JPEG compression (quality 10--95), rotation
+($\pm 5$--$30^\circ$), and rescaling ($s\!=\!0.6$--$1.5$ with zero-pad or
+centre-crop back to $32{\times}32$). The backdoor survives moderate
+perturbations (ASR $>75\%$ up to quality 95, $\pm 5^\circ$, $s\!=\!0.8$) and
+degrades gracefully alongside benign accuracy under severe ones --- the attack
+is no more fragile than the benign task itself.}
+\label{fig:phys}
+\end{figure*}

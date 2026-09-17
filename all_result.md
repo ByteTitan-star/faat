@@ -164,8 +164,9 @@
 |---|---|---|---|---|
 | ablation_noalign_seed1 | CIFAR-10 l2_1.5 去特征对齐 | 96.37 | 94.66 | 去对齐 ASR 仍高 → **对齐非核心但有益** |
 | ablation_noalign_seed2/3 | 同上多 seed | — | — | 日志缺失 |
-| ablation_CLEAN_scale0.1/0.2 | 仅 clean 对照 | — | — | 验证投毒必要性 |
-| ablation_scale0.1/0.2_noAdp | 去 adaptive | — | — | 验证 adaptive 作用 |
+| ablation_CLEAN_scale0.1 | 干净版无 adaptive 消融（Narcissus δ_global×0.1, faat_eps=0）⚠️ 更正(2026-09-16)：**非** clean 对照——实际投毒 500 张（poison_rate=0.01, y_target=0），日志复算末20均 PoisonACC=61.68 | 61.68 | 94.77 | "CLEAN"指修复了 ablation_scale*_noAdp 的 δ_global 污染（误用 v1 覆盖的 trigger 文件），与 v3.1(70.96) 同 δ_global 对照 → adaptive 贡献 +9.3 |
+| ablation_CLEAN_scale0.2 | 同上 scale 0.2（同 `resource/faat/v3_1/scale_0.2` 触发器）| 90.34 | 94.96 | vs v3.1(94.81) → adaptive 贡献 +4.5；SSIM 0.9631/L2 1.313 独立复算一致（stealth 本就只测 δ_global）|
+| ablation_scale0.1/0.2_noAdp | 去 adaptive ⚠️ **污染数据，勿引用**（δ_global 误用被 v1 覆盖的文件，ASR 20.29/62.68 混杂了方向差异） | — | — | 已被 ablation_CLEAN_* 取代（见 `docs/FAAT-EXPERIMENTS.md` P1 消融） |
 | ablation_tiny_l2_2.0_noalign | Tiny + 去对齐 | — | — | 跨数据集消融 |
 | lowpoison_p005 / p01 | CIFAR-10 0.5%/1% | — | — | 低投毒鲁棒性 |
 | faat_res_square_gs010/050/100 | guidance 0.1/0.5/1.0 | — | — | gs↑ → loss↓，重要旋钮 |

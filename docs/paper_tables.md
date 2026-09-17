@@ -87,15 +87,15 @@
 |---|---|---|---|
 | FAAT full (L2=1.5) | **93.6 ± 2.3** | 94.8 | 完整方法（3 seed）|
 | no-align (3 seed) | 95.5 | 94.8 | 去特征对齐，ASR 持平 → 对齐换隐蔽非 ASR |
-| **no-Adp (scale=0.1)** | **20.3** | 94.8 | 去 adaptive → ASR 崩 → **adaptive 是核心** |
-| no-Adp (scale=0.2) | 62.7 | 94.6 | 去 adaptive，大 scale 部分恢复 |
+| no-Adp (δ_global=Narcissus×0.1) | 61.7 | 94.8 | 去 adaptive（干净消融 ablation_CLEAN_scale0.1）→ −9.3 |
+| no-Adp (δ_global=Narcissus×0.2) | 90.3 | 95.0 | 去 adaptive（ablation_CLEAN_scale0.2）→ −4.5；scale↑ adaptive 贡献递减 |
 | guidance = 0.1 | 68.6 | 94.8 | 低 guidance |
 | guidance = 0.5 | 99.6 | 95.0 | 中 guidance |
 | guidance = 1.0 (default) | 100.0 | 94.9 | 标准 |
 | guidance = 1.0 + no-Adp | 100.0 | 94.7 | guidance 主导时 adaptive 冗余 |
 
-**结论**：① **adaptive 是 ASR 核心组件**（去之崩到 20.3）；② **guidance scale 是强旋钮**（0.1→1.0: 68.6→100）；③ 特征对齐在 CIFAR-10 对 ASR 非核心，价值在防御规避轴；④ guidance 与 adaptive 是可学性的替代驱动。
-（注：`ablation_CLEAN_*` 对照 ASR 61.7/90.3 偏高，疑似非纯 clean，不放本表，待核实。）
+**结论**（⚠️ 2026-09-16 核实修订）：① **adaptive 是低扰动预算下的 ASR 效率组件**（+9.3 @scale0.1 / +4.5 @scale0.2，越小 scale 贡献越大；大 guidance 时冗余）——~~"去之崩到 20.3"~~ 20.3/62.7 来自污染消融 ablation_scale*_noAdp（δ_global 误用被 v1 覆盖的 trigger 文件），**勿再引用**；② **guidance scale 是强旋钮**（0.1→1.0: 68.6→100）；③ 特征对齐在 CIFAR-10 对 ASR 非核心，价值在防御规避轴；④ guidance 与 adaptive 是可学性的替代驱动。
+（✅ 已核实 2026-09-16：`ablation_CLEAN_*` = **干净版无 adaptive 消融**，非 clean 对照——实际投毒 500 张/poison_rate=0.01/faat_eps=0/加载 `resource/faat/v3_1/scale_X` Narcissus 触发器；日志复算末20均 PoisonACC 61.68/90.34 与表一致；"CLEAN"指修复了首次消融的 δ_global 污染。来源：`results/ablation_CLEAN_scale*/args.json`+`output_1.log`、`docs/FAAT-EXPERIMENTS.md` P1 消融。论文 `tab_ablation.tex` 已正确使用（δ_global only 90.3 行），SSIM 0.963/L2 1.313 已独立复算吻合。）
 
 ---
 

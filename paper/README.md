@@ -69,25 +69,54 @@ sudo apt-get install -y texlive-latex-extra texlive-latex-recommended \
 * Cells whose experiment has **not yet been run** are filled with the placeholder
   `\na` which renders as **—** (em-dash), *not* `0.00`, to avoid confusion with
   measured zeros (e.g. GTSRB BadNets really is 0.00).
-* There is **no Limitations / Future-Work section** by author request — pending
-  experiments are simply left as `—` for the author to fill in.
+* A **Limitations** section (`sections/09b_limitations.tex`, added 2026-09-16)
+  states the honest scope: single architecture, cited CIFAR-100/Tiny baseline
+  cells, four-defense coverage, and the GTSRB stealth cost.
 
 ### List of `—` placeholders to fill later
 
-Numeric cells (rendered as **—**, macro `\na`):
-- **T1 main results** (`floats/tables/tab_main.tex`): CIFAR-100(0.5%) and
-  Tiny-IN(0.25%) cells for *MultiBpp-RGB* and *MultiBpp-B* (4 cells) — these
-  attacks collapse / were not run at those rates.
-- **T4 KST** (`floats/tables/tab_kst.tex`): Narcissus `s-dprime`; BppAttack
-  `ASR / L2 / spec-peak / s-dprime` (5 cells).
-- **Suppl. T7 KST campaign** (`supplement.tex`): Tiny-IN ε48 `BA`; GTSRB `ASR`
-  (2 cells).
+Updated 2026-09-16 (5 cells filled this session; see session log in
+`docs/paper_tables.md`). Remaining `—` cells, all requiring **new GPU runs**:
 
-Figures pending a render (supplement):
-- Physical-robustness curves (JPEG / rotation / scaling) — no such experiments
-  run yet; pending.
+Numeric cells (rendered as **—**, macro `\na`):
+- **None remaining in T1/T4/T7** (all filled 2026-09-16; see below). The only
+  pending figure work is the supplement physical-robustness curves.
+  ⚠️ **Correction (2026-09-16, second pass)**: the earlier note claiming
+  `bl_tiny_*` runs were invalid (BA 14%) was **an analysis-script bug**
+  (CleanLoss column misread as CleanACC). All nine `bl_tiny_*` runs are
+  **valid** (BA ≈ 54.7–55.1). Corrected last-20-epoch means (res-square,
+  32×32-crop pipeline): BadNets-C **89.3±3.6**, Blended-C **79.3±1.4**,
+  MultiBpp-RGB **62.5±1.7** (3 seeds), MultiBpp-B **55.0** (`bl_tiny_quantizeB_seed1`,
+  single seed, BA 54.9). These are same-pipeline matched numbers and much higher
+  than the originally cited 39.0/43.9 (original paper's 64×64 pipeline with 9×9
+  patches — a different, non-comparable setting). **Author decision (2026-09-16):
+  T1 Tiny BadNets/Blended keep the cited numbers** (headline +51.9 unchanged);
+  the matched numbers are archived here for reviewer response. MultiBpp-RGB/B
+  have no cited source, so the reproduced numbers are used in T1.
+
+Filled this session (2026-09-16):
+- T1 CIFAR-100(0.5%) MultiBpp-RGB **14.5** / MultiBpp-B **17.3**
+  (`results/kst_sdt/c100_bl_mbpprgb|B/output_1.log`, res-linear, 300 ep —
+  attacks collapse at this rate; noted in caption).
+- T1 Tiny-IN(0.25%) MultiBpp-RGB **62.5** / MultiBpp-B **55.0** (reproduced,
+  see correction above).
+- T4 Narcissus `s-dprime` **0.16** — identical-pipeline replay
+  (`/tmp/calc_narcissus_sdprime.py`; KST replay reproduces 4.6433 exactly).
+- T4 BppAttack full row **99.9 / 0.954 / 2.83 / 3.6e4 / 0.03**
+  (`results/kst_sdt/bppattack_q24_28_8_pr0.05_s1_result.json`, 5% dirty,
+  24:28:8, same eval protocol as the KST/Narcissus rows; replaces the cited
+  SSIM 0.97 so the whole row traces to one run).
+- Suppl. T7 Tiny-IN ε48 `BA` and GTSRB `ASR` were already filled in a previous
+  session (55.4/55.2 and 0.8†); the old README list was stale.
+
+Figures (all real now):
 - (F10 t-SNE, F11 Grad-CAM, F12 GTSRB training dynamics, and F13 the confidence
-  axis are all real now.)
+  axis are all real.)
+- **F14 physical robustness** (`gen_fig14_physical_robustness.py`, added
+  2026-09-16): JPEG (q10–95) / rotation (±5–30°) / rescaling (0.6–1.5) applied
+  to triggered test images of the three v4 CIFAR-10 L2=1.5 seed models.
+  Data: `_data/data_physical_robustness.csv`. Rerun plot-only:
+  `python gen_fig14_physical_robustness.py plot`.
 
 Everything else is a real, traceable number. To find them again:
 `grep -rn '\\na' floats/ sections/ supplement.tex`

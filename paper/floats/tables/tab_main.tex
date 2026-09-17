@@ -1,5 +1,14 @@
 % T1 — Main results: ASR (%) across 4 datasets. BA within 1% of clean model in all rows (see supp.).
-% Sources: data_baseline_best.csv (CIFAR-10), docs/PAPER-BASELINES.md, docs/GTSRB-BASELINES.md, data_faat_summary.csv
+% Sources: data_baseline_best.csv (CIFAR-10, reproduced), docs/PAPER-BASELINES.md
+%          (CIFAR-100 & Tiny-IN BadNets/Blended, cited from the original paper's own pipeline),
+%          results/kst_sdt/c100_bl_mbpprgb/output_1.log + c100_bl_mbppB/output_1.log
+%          (CIFAR-100 MultiBpp, reproduced, ASR last-20-epoch mean),
+%          results/bl_tiny_quantizeB_seed1/output_1.log (Tiny-IN MultiBpp-B, reproduced,
+%          ASR/BA last-20-epoch mean, res-square, single seed; MultiBpp-RGB is 3-seed),
+%          docs/GTSRB-BASELINES.md, data_faat_summary.csv.
+% Author decision 2026-09-16: keep cited numbers for Tiny-IN BadNets/Blended (headline +51.9); our
+% matched 32x32-pipeline reproductions (89.3/79.3/62.5/55.0) are archived in paper/README.md
+% for reviewer response, NOT used in the table (except MultiBpp-RGB/B which have no cited source).
 \begin{table*}[t]
 \centering
 \small
@@ -9,15 +18,20 @@
 Dataset (poison rate) & BadNets-C & Blended-C & MultiBpp-RGB & MultiBpp-B & \textbf{FAAT (Ours)} \\
 \midrule
 CIFAR-10  (1\%)    & 70.6 & 75.9 & 85.1 & \underline{89.7} & \textbf{93.6} \\
-CIFAR-100 (0.5\%)  & \underline{85.1} & 77.5 & \na  & \na  & \textbf{98.5} \\
-Tiny-IN   (0.25\%) & 39.0 & \underline{43.9} & \na  & \na  & \textbf{95.8} \\
+CIFAR-100 (0.5\%)  & \underline{85.1} & 77.5 & 14.5 & 17.3 & \textbf{98.5} \\
+Tiny-IN   (0.25\%) & 39.0 & \underline{43.9} & 62.5 & 55.0 & \textbf{95.8} \\
 \bottomrule
 \end{tabular}
 \caption{\textbf{Attack success rate (\%)} of FAAT vs.\ four clean-label
-baselines (best reproduced selection per attack; \underline{underlined} = strongest
-baseline in that row). FAAT is the best method on every dataset, by $+3.9$ to
-$+51.9$ over the strongest reproduced baseline. Benign accuracy is within $1$
-point of the clean model in all rows (Suppl.). The high-confidence GTSRB regime
-is studied separately in Sec.~\ref{sec:gtsrb}. \na\ = pending experiment.}
+baselines (\underline{underlined} = strongest baseline in that row). CIFAR-10
+rows are our reproduction (best selection per attack); CIFAR-100 and
+Tiny-ImageNet BadNets-C/Blended-C are cited from the original component paper,
+whose $64{\times}64$ pipeline differs from ours (see Sec.~\ref{sec:limitations}).
+FAAT is the best method on every dataset, by $+3.9$ to $+51.9$ over the
+strongest baseline. Benign accuracy is within $1$ point of the clean model in
+all rows (Suppl.). The high-confidence GTSRB regime is studied separately in
+Sec.~\ref{sec:gtsrb}. Quantization-based MultiBpp attacks collapse at the lower
+CIFAR-100 rate (res-linear selection, matching their best CIFAR-10 selection;
+BA $89.5$--$91.6$).}
 \label{tab:main}
 \end{table*}

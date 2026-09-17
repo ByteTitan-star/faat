@@ -80,8 +80,8 @@ NC~\cite{wang2019neuralcleanse} & 75.5 & 92.5 & 42.9 & 93.0 \\
 FST                             & 76.6 & 91.8 & 54.0 & 92.5 \\
 FP~\cite{liu2018finepruning}    & 66.4 & 92.2 & 50.6 & 92.4 \\
 ABL~\cite{li2021abl}            & 21.8 & 62.1 & 19.2 & 61.1 \\
-RNP~\cite{lyu2023rnp}           & 24.8 & 44.1 & 12.6 & 51.3 \\
-I-BAU~\cite{zeng2021ibau}       & 23.1 & 87.9 & 21.4 & 88.6 \\
+RNP~\cite{li2023rnp}           & 24.8 & 44.1 & 12.6 & 51.3 \\
+I-BAU~\cite{zeng2022ibau}       & 23.1 & 87.9 & 21.4 & 88.6 \\
 \bottomrule
 \end{tabular}
 \caption{Post-defense ASR (\%) and BA (\%) by selection. Source:
@@ -92,8 +92,8 @@ I-BAU~\cite{zeng2021ibau}       & 23.1 & 87.9 & 21.4 & 88.6 \\
 \section{KST multi-dataset campaign}
 \label{sec:kst-campaign}
 Table~\ref{tab:kst-campaign} reports KST at the operating $\varepsilon\!=\!48/255$
-on the harder datasets (where the flat-spectrum trigger becomes learnable);
-lower $\varepsilon$ and GTSRB are pending (\na).
+on the harder datasets (where the flat-spectrum trigger becomes learnable),
+with the lower-$\varepsilon$ GTSRB rows showing the stealth-but-no-ASR regime.
 
 \begin{table}[h]
 \centering
@@ -111,7 +111,7 @@ GTSRB (1\%)       & 20 & forget / res$_x$ & 0.0 & 100.0 \\
 \bottomrule
 \end{tabular}
 \caption{KST multi-dataset. $^\dagger$peak $19.3\%$ at epoch 139 then collapse
-to $0.8\%$ (Fig.~\ref{fig:gtsrb-dyn}). On GTSRB KST stays stealthy (SSIM $0.94$
+to $0.8\%$ (Fig.~9 of the main paper). On GTSRB KST stays stealthy (SSIM $0.94$
 at $\varepsilon\!=\!20$) but fails to flip the overconfident victim. Sources:
 \texttt{results/kst\_sdt/c100\_kst\_e48\_*/output\_1.log},
 \texttt{tiny\_kst\_e48\_*/output\_1.log},
@@ -155,8 +155,14 @@ res-e$^x$ & 66.7 & 71.8 & 62.3 & 53.9 \\
 \input{floats/figures_tex/f10_tsne}
 \input{floats/figures_tex/f11_gradcam}
 \input{floats/figures_tex/f13_confidence_axis}
-Physical-robustness curves (JPEG/rotation/scaling) are generated from the same
-trained models and will be inserted here (\na).
+
+\section{Physical robustness}
+\label{sec:phys}
+Figure~\ref{fig:phys} evaluates the deployed trigger under test-time input
+transformations. The backdoor tracks benign accuracy under degradation: it is
+not disproportionately fragile, and severe corruptions that break the attack
+(e.g.\ JPEG quality $\le\!30$) also destroy benign utility.
+\input{floats/figures_tex/f14_physical_robustness}
 
 {\small
 \bibliographystyle{ieeenat_fullname}
