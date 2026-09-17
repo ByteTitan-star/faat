@@ -103,7 +103,10 @@
 4. ~~加 Limitations 节~~ **✅ 已完成（2026-09-16）**：`paper/sections/09b_limitations.tex`（单架构 / CIFAR-100+Tiny 引用格与 bl_tiny 废弃 run 如实声明 / 4 防御覆盖 / GTSRB 隐蔽代价），编译通过正文仍在 8 页内；README 数据完整性政策已同步。**会议已定（2026-09-16 作者拍板）：CVPR 2027**（≈2026-11 中截稿，格式已就绪）。
 
 ### 线 B（表征，补缺口→写作）
-1. **cross-architecture 验证**（最优先——单架构是最大 caveat）：**✅ 3-seed 完成（2026-09-17，含夜间 run）**：VGG16 a/c/cur × 3 seed × 300ep 全部跑完（`results_ood/oodabc_cifar10_{a,c,cur}_seed{1,2,3}_vgg16/`）。**排序不变性跨架构坐实且 seed 稳定：cur > a > c 在 3/3 seed 严格成立**——cur **85.8±2.1** > a **77.9±3.2** > c **66.9±2.9**（BA 均 92.7-93.1 无损）。与 ResNet18 的 cur≈b>a>c 一致 ✅。定量差异：c 臂税 VGG16 = **−18.9**（85.8−66.9），较 ResNet18 的 0/18 全灭阶跃**变浅**——OOD 负校准的"致命性"幅度部分依赖架构，但方向/排序普适。写作句式："the ranking cur > a > c is preserved across architectures (3/3 seeds), though the calibration cliff is softer on VGG16 (−18.9 vs. full suppression on ResNet-18)"。代码改动已提交（`fafd02e`）。触发器优化阶段 proxy 仍是 resnet18（合理 surrogate 迁移设定）；表征层指标（gini/CKA）需适配 VGG16 的 fc_2(128维) penultimate——待做；
+1. **cross-architecture 验证**（最优先——单架构是最大 caveat）：**✅ 行为层+表征层全部完成（2026-09-17）**：VGG16 a/c/cur × 3 seed × 300ep（`results_ood/oodabc_cifar10_{a,c,cur}_seed{1,2,3}_vgg16/`）。
+   **行为层：排序不变性跨架构坐实且 seed 稳定——cur > a > c 在 3/3 seed 严格成立**：cur **85.8±2.1** > a **77.9±3.2** > c **66.9±2.9**（BA 均 92.7-93.1 无损）。c 臂税 VGG16 = −18.9，比 ResNet18 的 0/18 全灭阶跃**变浅**——OOD 负校准的"致命性"幅度部分依赖架构，但方向/排序普适。写作句式："the ranking cur > a > c is preserved across architectures (3/3 seeds), though the calibration cliff is softer on VGG16"。
+   **表征层（`scripts/pilot_representation_vgg.py` → `docs/pilot_representation_vgg16.csv`，9 行）**：机制签名跨架构保持——**1-CKA(stage5) 排序 cur 0.881 > a 0.770 > c 0.679**，cur 触发表征与 clean 近正交（ResNet18 上 0.91，同签名）；c 臂"温和偏移但背离锚点"复现（mp5 最低 0.679）。gini 三臂无分离（0.58-0.60 重叠）——与 ResNet18 的 CIFAR-10 同因（CIFAR-10 无非获取组，gini 是 acquired vs non-acquired 签名，GTSRB 才可测），**非架构差异，机制自洽**。VGG16 penultimate=fc_2(128d)，conc_top3pct 按同比例（top4/128）口径可比。
+   代码改动已提交（`fafd02e` + `2eae011`）；表征脚本与 CSV 待随下次提交入库。触发器优化阶段 proxy 仍是 resnet18（合理 surrogate 迁移设定）。
 2. 检测层补全：STRIP（`faat/defenses.py:strip_detection`）、NC（未实现，需写）、FP（`defenses.py:fine_pruning_defense`）；
 3. 可选：FAAT-as-trigger-family 进相图（用冻结仓库配方）；
 4. 写作：相图主图（预算×校准×P_L）+ 机制链图 + 检测解耦散点；会议定位 S&P/USENIX/CCS analysis 风格或 ICLR/NeurIPS。

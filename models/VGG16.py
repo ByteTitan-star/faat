@@ -50,6 +50,23 @@ class VGG16(nn.Module):
         self.bn_1 = nn.BatchNorm1d(128)
         self.fc_3 = nn.Linear(128, num_classes)
 
+    def extract_feature(self, x):
+        """Penultimate features (fc_2 output, 128-d) — mirrors ResNet18.extract_feature."""
+        x = self.forward_to_flat(x)
+        x = F.relu(self.fc_1(x))
+        x = self.dp_1(x)
+        x = F.relu(self.fc_2(x))
+        return x
+
+    def forward_to_flat(self, x):
+        for m in (self.conv_1_1, self.conv_1_2, self.maxpool_1,
+                  self.conv_2_1, self.conv_2_2, self.maxpool_2,
+                  self.conv_3_1, self.conv_3_2, self.conv_3_3, self.maxpool_3,
+                  self.conv_4_1, self.conv_4_2, self.conv_4_3, self.maxpool_4,
+                  self.conv_5_1, self.conv_5_2, self.conv_5_3, self.maxpool_5):
+            x = F.relu(m(x)) if isinstance(m, BasicConv2d) else m(x)
+        return x.view(x.size(0), -1)
+
     def forward(self, x):
 
         x = F.relu(self.conv_1_1(x))
